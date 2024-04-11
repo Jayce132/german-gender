@@ -1,5 +1,5 @@
-import { db } from './firebaseConfig.js';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {db} from './firebaseConfig.js';
+import {collection, addDoc, serverTimestamp} from 'firebase/firestore';
 
 const wordsData = [{
     "english": "apple",
@@ -102,7 +102,7 @@ const wordsData = [{
     "german": "Stuhl",
     "article": "der",
     "translation": "the chair",
-    "image": "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg?auto=compress&cs=tinysrgb&w=800"
+    "image": "https://images.pexels.com/photos/116910/pexels-photo-116910.jpeg?auto=compress&cs=tinysrgb&w=800"
 }];
 
 async function uploadData() {
@@ -112,8 +112,7 @@ async function uploadData() {
         try {
             // Add a createdAt field with a server-side timestamp
             const docRef = await addDoc(wordsCollectionRef, {
-                ...word,
-                createdAt: serverTimestamp(),
+                ...word, createdAt: serverTimestamp(),
             });
             console.log(`Document added: ${docRef.id}`);
         } catch (error) {

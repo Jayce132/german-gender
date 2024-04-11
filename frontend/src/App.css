@@ -121,8 +121,12 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .fade-in {
@@ -138,31 +142,58 @@
     background-color: #1a1a1a;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /* Hide scrollbar for IE, Edge, and Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .favoritesList h1 {
     text-align: center;
 }
 
-.App {
-    display: flex;
-    flex-direction: row; /* Align children horizontally */
-    justify-content: center; /* Center the items horizontally */
-    align-items: start; /* Align items to the start of the cross axis */
-    padding-top: 20px; /* Adjust as needed */
+.favoritesList p {
+    margin: 5px;
 }
 
-.sidebar {
-    max-height: 90vh;
-    overflow-y: auto;
+.noFavoritesMessage {
+    padding: 10px;
+}
+
+.App {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr; /* Adjust the ratio as needed */
+    grid-template-areas:
+        "favorites main fulllist";
+    gap: 10px;
+    padding: 20px;
+}
+
+.sidebar.left {
+    grid-area: favorites; /* Assign the left sidebar to the 'favorites' area */
+    /* Flex end to make it sit closer to the mainContent instead of at the start of the left sidebar */
+    display: flex;
+    flex-direction: row;
+    justify-content: end
 }
 
 .mainContent {
+    grid-area: main; /* Assign the main content area to the 'main' area */
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
+.sidebar.right {
+    grid-area: fulllist; /* Assign the right sidebar to the 'fulllist' area */
+    align-items: flex-start; /* Keep as is or adjust as needed */
+}
 
 
 .searchInput {
@@ -172,7 +203,7 @@
 }
 
 .genderSelectButton {
-    margin: 0 10px;
+    margin: 0 0.4vw;
 }
 
 .wordImageContainer {
@@ -205,4 +236,46 @@
 
 .germanNounInput {
     margin-bottom: 20px;
+}
+
+/* Adjustments for larger screens */
+@media (min-width: 768px) {
+    /* Adjust this breakpoint as needed */
+    .App {
+        flex-direction: row; /* Align children horizontally on larger screens */
+    }
+
+    .sidebar {
+        width: auto; /* Auto width on larger screens */
+    }
+}
+
+@media (min-width: 768px) {
+    .mainContent {
+        width: auto; /* Adjust width as needed on larger screens */
+    }
+}
+
+
+/* Responsive Grid for smaller screens */
+@media (max-width: 768px) {
+    .App {
+        grid-template-columns: 1fr 1fr; /* Two equal columns for smaller screens */
+        grid-template-rows: auto auto; /* Adjust rows based on content size */
+        grid-template-areas:
+            "main fulllist"
+            "favorites fulllist";
+    }
+
+    .sidebar.left {
+        justify-content: center;
+    }
+}
+
+.articleOption {
+    color: #fff;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    margin-right: 10px;
+    cursor: pointer;
 }

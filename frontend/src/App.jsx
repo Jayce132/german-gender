@@ -40,6 +40,8 @@ const App = () => {
         // Set the first word as the current word
         if (processedWords.length > 0) {
             setCurrentWordEnglishFull(processedWords[0].english);
+        } else {
+            setIsModalOpen(true);
         }
     };
 
@@ -207,6 +209,9 @@ const App = () => {
 
     return (<div className="App">
 
+        {isModalOpen && <WordModal onClose={closeModal} onSave={handleSaveWord} wordDetails={currentWordDetails}
+                                   isEditMode={modalMode === 'edit'}/>}
+
         <div className="sidebar left">
 
             <FavoritesList
@@ -218,11 +223,7 @@ const App = () => {
 
         </div>
 
-        {isModalOpen && <WordModal onClose={closeModal} onSave={handleSaveWord} wordDetails={currentWordDetails}
-                                   isEditMode={modalMode === 'edit'}/>}
-
         <div className="mainContent">
-
 
             {/* Search Bar */}
             <div>
@@ -234,12 +235,17 @@ const App = () => {
                 />
             </div>
 
+            {/*// Main */}
             <div key={currentWordToShow.id} className="fade-in">
                 <div className="wordImageContainer">
                     <img className="wordDisplayImage" src={currentWordToShow.image}
-                         alt={currentWordToShow.english}/>
+                         alt={currentWordToShow.english}
+                         onError={(e) => e.target.src = 'https://images.pexels.com/photos/1337382/pexels-photo-1337382.jpeg?auto=compress&cs=tinysrgb&w=800'}
+                    />
                 </div>
-                <p className="wordDisplayText">{`the ${currentWordToShow.english}`}</p>
+                <p className="wordDisplayText">
+                    {words.length > 0 ? `the ${currentWordToShow.english}` : "You need to add a word."}
+                </p>
             </div>
             <div>
                 {['der', 'die', 'das'].map((gender) => (<button key={gender} onClick={() => setSelectedGender(gender)}
@@ -254,7 +260,7 @@ const App = () => {
                        onChange={(e) => setGermanNoun(e.target.value)}
                        placeholder="Type the German noun" required
                        disabled={isReview}/>
-                <button type="submit">{isReview ? 'Continue' : 'Submit'}</button>
+                <button type="submit" disabled={words.length === 0}>{isReview ? 'Continue' : 'Submit'}</button>
             </form>
             {feedback && <p className={feedbackClass}>{feedback}</p>}
 

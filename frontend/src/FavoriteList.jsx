@@ -26,13 +26,18 @@ const FavoritesList = ({words, onSelectWord, currentSelectedWord, toggleFavorite
             </div>);
         })) : (// Display a helpful message when there are no favorite words
             <div className="noFavoritesMessage">
-                <p>Click the <FontAwesomeIcon icon={farHeart}/> next to a word to
-                    mark it as a favorite.
+                <p>Click on the <FontAwesomeIcon icon={farHeart}/> next to a word to
+                    mark it as a favorite and add it here.
                 </p>
 
-                <p>Click on a word from this list to switch to Favorite Words mode.</p>
+                <br></br>
 
-                <p>To go back to using the full list of words you can select a word on the right.</p>
+                <p>Click on a word from this list to switch to <strong>Favorite Words</strong> mode.</p>
+
+                <br></br>
+
+                <p>To go back to using the <strong>All Words</strong> mode you can select a word from the right side
+                    list.</p>
             </div>)}
     </div>);
 };
