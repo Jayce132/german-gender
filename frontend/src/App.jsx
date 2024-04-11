@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import './App.css';
 import FullList from "./FullList.jsx";
 import FavoritesList from "./FavoriteList.jsx";
-import { db } from './firebaseConfig';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-
-
+import {fetchWords, addWord, updateWord, deleteWord} from './api/wordsApi';
+import WordModal from "./WordModal.jsx";
 
 const App = () => {
     const [words, setWords] = useState([]); // State to hold the processed words array
@@ -26,29 +24,28 @@ const App = () => {
 
     const [searchQuery, setSearchQuery] = useState(''); // State for the search query above main panel
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+    const [currentWordDetails, setCurrentWordDetails] = useState(null);
+
+    const handleFetchAndProcessWords = async () => {
+        const fetchedWords = await fetchWords();
+
+        // Process fetched words
+        const processedWords = fetchedWords.map(word => ({
+            ...word, attemptStatus: 'unattempted', isFavorite: false,
+        }));
+        setWords(processedWords);
+
+        // Set the first word as the current word
+        if (processedWords.length > 0) {
+            setCurrentWordEnglishFull(processedWords[0].english);
+        }
+    };
+
+
     useEffect(() => {
-        const fetchAndProcessWords = async () => {
-            const wordsCollectionRef = collection(db, "words");
-            const q = query(wordsCollectionRef, orderBy("createdAt"));
-            const querySnapshot = await getDocs(q);
-            const fetchedWords = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-
-            // Process fetched words to add additional properties like attemptStatus and isFavorite
-            const processedWords = fetchedWords.map(word => ({
-                ...word,
-                attemptStatus: 'unattempted',
-                isFavorite: false,
-            }));
-
-            setWords(processedWords);
-
-            // Sets the current word to be the first word on the list
-            if (processedWords.length > 0) {
-                setCurrentWordEnglishFull(processedWords[0].english);
-            }
-        };
-
-        fetchAndProcessWords();
+        handleFetchAndProcessWords();
     }, []);
 
     // Find the current word based on its English name
@@ -161,58 +158,123 @@ const App = () => {
     const filteredWords = searchQuery.length > 0 ? words.filter(word => word.english.toLowerCase().includes(searchQuery.toLowerCase())) : words;
 
 
-    return (<div className="App" style={{display: 'flex', flexDirection: 'row', alignItems: 'start', height: '100vh'}}>
+    const closeModal = () => setIsModalOpen(false);
 
-        <FavoritesList
-            words={filteredWords.filter(word => word.isFavorite)}
-            onSelectWord={handleSelectWordFavorites}
-            currentSelectedWord={currentWordEnglishFavorites}
-            toggleFavorite={handleToggleFavorite}
-        />
+    // Function to open the modal for adding
+    const openAddModal = () => {
+        setIsModalOpen(true);
+        setModalMode('add');
+        setCurrentWordDetails(null); // Clear any previous edit details
+    };
 
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}>
+    // Function to open the modal for editing
+    const openEditModal = (wordDetails) => {
+        setIsModalOpen(true);
+        setModalMode('edit');
+        setCurrentWordDetails(wordDetails);
+    };
+
+    const handleSaveWord = async (wordData, id = null) => {
+        if (id) {
+            try {
+                await updateWord(id, wordData);
+            } catch (error) {
+                console.error("Error updating word: ", wordData);
+            }
+        } else {
+            try {
+                await addWord(wordData);
+            } catch (error) {
+                console.error("Error adding word: ", wordData);
+            }
+
+        }
+        handleFetchAndProcessWords();
+        closeModal();
+    };
+
+    const handleDeleteWord = async (id) => {
+        try {
+            await deleteWord(id);
+            console.log(`Word with ID: ${id} deleted`);
+            handleFetchAndProcessWords();
+        } catch (error) {
+            console.error("Error deleting word: ", error);
+        }
+
+    };
+
+
+    return (<div className="App">
+
+        <div className="sidebar left">
+
+            <FavoritesList
+                words={filteredWords.filter(word => word.isFavorite)}
+                onSelectWord={handleSelectWordFavorites}
+                currentSelectedWord={currentWordEnglishFavorites}
+                toggleFavorite={handleToggleFavorite}
+            />
+
+        </div>
+
+        {isModalOpen && <WordModal onClose={closeModal} onSave={handleSaveWord} wordDetails={currentWordDetails}
+                                   isEditMode={modalMode === 'edit'}/>}
+
+        <div className="mainContent">
+
 
             {/* Search Bar */}
-            <div style={{width: '100%', display: 'flex', justifyContent: 'center', padding: '10px'}}>
+            <div>
                 <input
-                    type="text"
+                    className="searchInput" type="text"
                     placeholder="Search words..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    style={{width: '60%', padding: '10px', marginBottom: '20px'}} // Adjust width as needed
                 />
             </div>
 
-            <div>
-                <img src={currentWordToShow.image} alt={currentWordToShow.english} style={{
-                    maxWidth: '30vh', height: '30vh', objectFit: 'cover', display: 'block', margin: '0 auto'
-                }}/>
-                <p style={{textAlign: 'center'}}>{`the ${currentWordToShow.english}`}</p>
+            <div key={currentWordToShow.id} className="fade-in">
+                <div className="wordImageContainer">
+                    <img className="wordDisplayImage" src={currentWordToShow.image}
+                         alt={currentWordToShow.english}/>
+                </div>
+                <p className="wordDisplayText">{`the ${currentWordToShow.english}`}</p>
             </div>
             <div>
                 {['der', 'die', 'das'].map((gender) => (<button key={gender} onClick={() => setSelectedGender(gender)}
-                                                                className={selectedGender === gender ? 'selected' : ''}
-                                                                style={{margin: '0 10px'}}
+                                                                className={`${selectedGender === gender ? 'selected ' : ''}genderSelectButton`}
                                                                 disabled={isReview}>
                     {gender}
                 </button>))}
             </div>
-            <form onSubmit={handleSubmit}
-                  style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px'}}>
-                <input type="text" value={germanNoun} onChange={(e) => setGermanNoun(e.target.value)}
-                       placeholder="Type the German noun" required style={{marginBottom: '10px'}}
+            <form onSubmit={handleSubmit} className="germanNounForm"
+            >
+                <input className="germanNounInput" type="text" value={germanNoun}
+                       onChange={(e) => setGermanNoun(e.target.value)}
+                       placeholder="Type the German noun" required
                        disabled={isReview}/>
                 <button type="submit">{isReview ? 'Continue' : 'Submit'}</button>
             </form>
             {feedback && <p className={feedbackClass}>{feedback}</p>}
+
+
         </div>
 
-        <FullList
-            words={filteredWords}
-            onSelectWord={handleSelectWordFull}
-            currentSelectedWord={currentWordEnglishFull}
-            toggleFavorite={handleToggleFavorite}
-        />
+        <div className="sidebar right">
+
+
+            <FullList
+                words={filteredWords}
+                onSelectWord={handleSelectWordFull}
+                currentSelectedWord={currentWordEnglishFull}
+                toggleFavorite={handleToggleFavorite}
+                onAddNewWord={openAddModal}
+                onEditWord={openEditModal}
+                onDeleteWord={handleDeleteWord}
+            />
+
+        </div>
 
     </div>);
 

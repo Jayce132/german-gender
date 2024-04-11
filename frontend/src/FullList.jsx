@@ -4,11 +4,13 @@ import {
     faEdit, faHeart as fasHeart, faTrash
 } from '@fortawesome/free-solid-svg-icons'; // Filled heart
 
-const FullList = ({words, onSelectWord, currentSelectedWord, toggleFavorite}) => {
-    return (<div className="wordList" style={{maxHeight: '90vh', overflowY: 'auto', width: '30vh'}}>
-        <h1>Words</h1>
+const FullList = ({
+                      words, onSelectWord, currentSelectedWord, toggleFavorite, onAddNewWord, onEditWord, onDeleteWord
+                  }) => {
+    return (<div className="wordList">
 
-        <div className="wordItem addNewWord" onClick={() => console.log("Add new word")}>
+
+        <div className="wordItem addNewWord" onClick={onAddNewWord}>
             Add new word
         </div>
 
@@ -21,18 +23,28 @@ const FullList = ({words, onSelectWord, currentSelectedWord, toggleFavorite}) =>
                          onClick={() => onSelectWord(word.english)}>
                 {word.english}
                 <div className="actions">
-                            <span className="actionIcon editIcon" onClick={() => console.log('Edit', word.english)}>
-                                <FontAwesomeIcon icon={faEdit}/>
-                            </span>
-                    <span className="actionIcon deleteIcon" onClick={() => console.log('Delete', word.english)}>
-                                <FontAwesomeIcon icon={faTrash}/>
-                            </span>
                     <span className="actionIcon favoriteIcon" onClick={(e) => {
                         e.stopPropagation();
                         toggleFavorite(word.english);
                     }}>
                                 <FontAwesomeIcon icon={word.isFavorite ? fasHeart : farHeart}/>
                             </span>
+                    <span className="actionIcon editIcon" onClick={(e) => {
+                        e.stopPropagation(); // Prevent the list item's onClick
+                        onEditWord({
+                            ...word, // Spread the word object
+                            id: word.id, // Ensure the ID is included
+                        });
+                    }}>
+    <FontAwesomeIcon icon={faEdit}/>
+</span>
+                    <span className="actionIcon deleteIcon" onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the onSelectWord click event
+                        onDeleteWord(word.id);
+                    }}>
+    <FontAwesomeIcon icon={faTrash}/>
+</span>
+
                 </div>
             </div>);
         })}

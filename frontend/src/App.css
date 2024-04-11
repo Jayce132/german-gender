@@ -1,16 +1,15 @@
-.wordList {
-    width: 200px;
-    padding: 10px;
-    background-color: var(--background-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.centered-text {
+    text-align: center;
+}
+
+.submit-button {
+    margin: 0 0.4vw;
 }
 
 .wordItem {
     position: relative;
     cursor: pointer;
     padding: 10px;
-    /*border: 1px solid #ccc;*/
     border-radius: 8px;
     margin: 5px;
     display: flex;
@@ -32,11 +31,9 @@
 }
 
 .current {
-    /*background-color: var(--highlight-color);*/
-    /*color: #fff;*/
-    border: 1px solid;
+    box-shadow: 0 0 0 .15vw var(--highlight-color);
+    transition: .4s;
 
-    border-color: var(--highlight-color);
     color: var(--highlight-color);
 
 }
@@ -44,16 +41,18 @@
 .wordItem.correct {
     background-color: var(--success-color); /* Green for correct answers */
     color: #fff;
+    transition: .4s;
 }
 
 .wordItem.incorrect {
     background-color: var(--error-color); /* Red for incorrect answers */
     color: #fff;
+    transition: .4s;
 }
 
 .actions {
     display: flex;
-    gap: 15px; /* Adjust the space between icons as needed */
+    gap: 15px;
 }
 
 .actionIcon {
@@ -84,5 +83,126 @@
 }
 
 .wordItem:hover {
-    border-color: var(--highlight-color);
+    box-shadow: 0 0 0 .15vw rgba(135, 207, 235, 0.186);
+}
+
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it sits on top of all other elements */
+}
+
+.modalContent {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adjust space between form elements */
+    border-radius: 10px;
+}
+
+.formActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px; /* Adjust space above the button row */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-out;
+}
+
+.wordList, .favoritesList {
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 30vh; /* Ensure both lists have the same width */
+    margin: 5px;
+    padding: 1vw;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.favoritesList h1 {
+    text-align: center;
+}
+
+.App {
+    display: flex;
+    flex-direction: row; /* Align children horizontally */
+    justify-content: center; /* Center the items horizontally */
+    align-items: start; /* Align items to the start of the cross axis */
+    padding-top: 20px; /* Adjust as needed */
+}
+
+.sidebar {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.mainContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+
+.searchInput {
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.genderSelectButton {
+    margin: 0 10px;
+}
+
+.wordImageContainer {
+    width: 30vh;
+    height: 30vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hide parts of the image that exceed the container size */
+    margin: 0 2vw; /* Center the container */
+}
+
+.wordDisplayImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover; /* This ensures the image covers the area of the container without distorting its aspect ratio */
+}
+
+
+.wordDisplayText {
+    text-align: center;
+}
+
+.germanNounForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.germanNounInput {
+    margin-bottom: 20px;
 }

@@ -7,8 +7,8 @@ const FavoritesList = ({words, onSelectWord, currentSelectedWord, toggleFavorite
     // Check if there are any favorite words
     const hasFavorites = words.length > 0;
 
-    return (<div className="favoritesList" style={{maxHeight: '90vh', overflowY: 'auto', width: '30vh'}}>
-        <h1><FontAwesomeIcon icon={hasFavorites ? fasHeart : farHeart}/> Favorites</h1>
+    return (<div className="favoritesList">
+        <h1><FontAwesomeIcon icon={hasFavorites ? fasHeart : farHeart}/></h1>
         {hasFavorites ? (words.map((word) => {
             const isSelected = word.english === currentSelectedWord;
             const itemClasses = isSelected ? 'wordItem current' : `wordItem ${word.attemptStatus}`;
@@ -26,11 +26,11 @@ const FavoritesList = ({words, onSelectWord, currentSelectedWord, toggleFavorite
             </div>);
         })) : (// Display a helpful message when there are no favorite words
             <div className="noFavoritesMessage">
-                {/*<p>This section will display your selected favorite words for easy access.</p>*/}
+                <p>Click the <FontAwesomeIcon icon={farHeart}/> next to a word to
+                    mark it as a favorite.
+                </p>
 
-                <p>Click the heart icon next to a word to mark it as a favorite.</p>
-
-                <p>Selecting a word from here will make the app only use your favorite words.</p>
+                <p>Click on a word from this list to switch to Favorite Words mode.</p>
 
                 <p>To go back to using the full list of words you can select a word on the right.</p>
             </div>)}
