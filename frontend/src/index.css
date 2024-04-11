@@ -1,7 +1,7 @@
 :root {
   --background-color: #242424;
   --highlight-color: #74B3CE;
-  --success-color: #6EEB83;
+  --success-color: #5FAD56;
   --error-color: #E54B4B;
 
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -51,6 +51,7 @@ input {
   padding: 10px;
   margin-bottom: 20px;
   font-size: 16px;
+  border-radius: 8px;
 }
 
 .text-success {

@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
+import FullList from "./FullList.jsx";
+import FavoritesList from "./FavoriteList.jsx";
 
 const wordsData = [{
     "english": "apple",
@@ -111,11 +113,18 @@ const App = () => {
     const [selectedGender, setSelectedGender] = useState('');
     const [germanNoun, setGermanNoun] = useState('');
 
-    const [currentWordEnglish, setCurrentWordEnglish] = useState(''); // Current word english property
-
     const [feedback, setFeedback] = useState('');
     const [feedbackClass, setFeedbackClass] = useState(''); // For styling feedback message
     const [isReview, setIsReview] = useState(false); // Don't continue immediately after Submit
+
+    // State for managing current selection in the FullList and FavoritesList separately
+    const [currentWordEnglishFull, setCurrentWordEnglishFull] = useState('');
+    const [currentWordEnglishFavorites, setCurrentWordEnglishFavorites] = useState('');
+
+    // State to determine which list to iterate through: 'full' or 'favorites'
+    const [iterationMode, setIterationMode] = useState('full'); // 'full' or 'favorites'
+
+    const [searchQuery, setSearchQuery] = useState(''); // State for the search query above main panel
 
     // Process wordsData to add attemptStatus and isFavorite property
     useEffect(() => {
@@ -125,14 +134,21 @@ const App = () => {
         setWords(processedWords);
         // Ensure the initial value is set correctly
         if (processedWords.length > 0) {
-            setCurrentWordEnglish(processedWords[0].english);
+            setCurrentWordEnglishFull(processedWords[0].english);
         }
     }, []);
 
     // Find the current word based on its English name
-    const currentWord = words.find(word => word.english === currentWordEnglish) || words[0];
+    const currentWordEnglishToUse = iterationMode === 'full' ? currentWordEnglishFull : currentWordEnglishFavorites;
+    const currentWordToShow = words.find(word => word.english === currentWordEnglishToUse) || {};
+
 
     const handleAnswerCheck = () => {
+        // Determine which word is currently being checked based on iterationMode
+        const currentWordEnglish = iterationMode === 'full' ? currentWordEnglishFull : currentWordEnglishFavorites;
+        const currentWord = words.find(word => word.english === currentWordEnglish);
+
+        // Update the words state with the attempt status for the current word
         const updatedWords = words.map(word => {
             if (word.english === currentWordEnglish) {
                 return {
@@ -145,53 +161,33 @@ const App = () => {
 
         setWords(updatedWords);
 
+        // Provide feedback based on whether the attempt was correct or not
         const isCorrect = selectedGender === currentWord.article && germanNoun.toLowerCase() === currentWord.german.toLowerCase();
         setFeedback(isCorrect ? "Correct!" : `Correct answer: ${currentWord.article} ${currentWord.german}`);
         setFeedbackClass(isCorrect ? "text-success" : "text-error");
+
         setIsReview(true);
     };
 
-
     const handleContinue = () => {
-        const currentIndex = words.findIndex(word => word.english === currentWordEnglish);
-        const nextWord = words[(currentIndex + 1) % words.length];
-        setCurrentWordEnglish(nextWord.english);
+        const currentList = iterationMode === 'full' ? words : words.filter(word => word.isFavorite);
+        const currentWordEnglish = iterationMode === 'full' ? currentWordEnglishFull : currentWordEnglishFavorites;
+        const currentIndex = currentList.findIndex(word => word.english === currentWordEnglish);
+        const nextIndex = (currentIndex + 1) % currentList.length;
+        const nextWord = currentList[nextIndex].english;
+
+        if (iterationMode === 'full') {
+            setCurrentWordEnglishFull(nextWord);
+        } else {
+            setCurrentWordEnglishFavorites(nextWord);
+        }
+
+        // Reset the form for the next word
         setSelectedGender('');
         setGermanNoun('');
         setFeedback('');
         setIsReview(false);
     };
-
-    const handleWordSelect = (wordEnglish) => {
-        const updatedWords = words.map((word) => {
-            if (word.english === wordEnglish) {
-                // Mark the selected word as current
-                return {...word, attemptStatus: 'current'};
-            } else if (word.attemptStatus !== 'correct' && word.attemptStatus !== 'incorrect') {
-                // Reset others to 'unattempted', preserving 'correct' or 'incorrect' statuses
-                return {...word, attemptStatus: 'unattempted'};
-            }
-            return word;
-        });
-
-        setWords(updatedWords);
-        setCurrentWordEnglish(wordEnglish);
-        setSelectedGender('');
-        setGermanNoun('');
-        setFeedback('');
-        setIsReview(false);
-    };
-
-    const toggleFavorite = (wordEnglish) => {
-        const updatedWords = words.map(word => {
-            if (word.english === wordEnglish) {
-                return {...word, isFavorite: !word.isFavorite};
-            }
-            return word;
-        });
-        setWords(updatedWords);
-    };
-
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -202,26 +198,85 @@ const App = () => {
         }
     };
 
-    return (<div className="App" style={{display: 'flex', flexDirection: 'row', alignItems: 'start', height: '100vh'}}>
-        <div className="favoritesList" style={{flex: 1, maxHeight: '90vh', overflowY: 'auto', margin: '50px'}}>
-            {words.filter(word => word.isFavorite).map((word) => (
-                <div key={word.english} className={`wordItem ${word.attemptStatus}`}>
-                    {word.english}
-                    <span onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering word selection
-                        toggleFavorite(word.english);
-                    }}>
-                        {word.isFavorite ? '❤️' : '🖤'}
-                    </span>
-                </div>))}
-        </div>
+    // Handles word selection in the FullList
+    const handleSelectWordFull = (wordEnglish) => {
+        setCurrentWordEnglishFull(wordEnglish);
+        setCurrentWordEnglishFavorites(''); // Clear the selection in the FavoritesList
+        setIterationMode('full'); // Automatically switch to iterating through the full list
+        setSelectedGender('');
+        setGermanNoun('');
+        setFeedback('');
+        setIsReview(false);
+    };
 
-        <div style={{flex: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px'}}>
+    // Handles word selection in the FavoritesList
+    const handleSelectWordFavorites = (wordEnglish) => {
+        setCurrentWordEnglishFavorites(wordEnglish);
+        setCurrentWordEnglishFull(''); // Clear the selection in the FullList
+        setIterationMode('favorites'); // Automatically switch to iterating through the favorites list
+        setSelectedGender('');
+        setGermanNoun('');
+        setFeedback('');
+        setIsReview(false);
+    };
+
+
+    const handleToggleFavorite = (wordEnglish) => {
+        const updatedWords = words.map(word => {
+            if (word.english === wordEnglish) {
+                return {...word, isFavorite: !word.isFavorite};
+            }
+            return word;
+        });
+
+        // Update the words state with the new favorite status
+        setWords(updatedWords);
+
+        // Check if the unfavorited word is the currently displayed word in 'favorites' mode
+        if (iterationMode === 'favorites' && (!updatedWords.find(word => word.isFavorite && word.english === currentWordEnglishFavorites) || updatedWords.filter(word => word.isFavorite).length === 0)) {
+            // If the unfavorited word was the last favorite or the currently displayed word, switch to the full list
+            setIterationMode('full');
+
+            // Select the next word in the full list or default back to the first word if none is selected
+            if (!currentWordEnglishFull) {
+                setCurrentWordEnglishFull(words[0].english);
+            }
+        }
+    };
+
+    // Filtering logic for the main panel based on search query
+    const filteredWords = searchQuery.length > 0
+        ? words.filter(word => word.english.toLowerCase().includes(searchQuery.toLowerCase()))
+        : words;
+
+
+    return (<div className="App" style={{display: 'flex', flexDirection: 'row', alignItems: 'start', height: '100vh'}}>
+
+        <FavoritesList
+            words={filteredWords.filter(word => word.isFavorite)}
+            onSelectWord={handleSelectWordFavorites}
+            currentSelectedWord={currentWordEnglishFavorites}
+            toggleFavorite={handleToggleFavorite}
+        />
+
+        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}>
+
+            {/* Search Bar */}
+            <div style={{width: '100%', display: 'flex', justifyContent: 'center', padding: '10px'}}>
+                <input
+                    type="text"
+                    placeholder="Search words..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    style={{width: '60%', padding: '10px', marginBottom: '20px'}} // Adjust width as needed
+                />
+            </div>
+
             <div>
-                <img src={currentWord?.image} alt={currentWord?.english} style={{
-                    maxWidth: '100%', height: '30vh', objectFit: 'cover', display: 'block', margin: '0 auto'
+                <img src={currentWordToShow.image} alt={currentWordToShow.english} style={{
+                    maxWidth: '30vh', height: '30vh', objectFit: 'cover', display: 'block', margin: '0 auto'
                 }}/>
-                <p style={{textAlign: 'center'}}>{`the ${currentWord?.english}`}</p>
+                <p style={{textAlign: 'center'}}>{`the ${currentWordToShow.english}`}</p>
             </div>
             <div>
                 {['der', 'die', 'das'].map((gender) => (<button key={gender} onClick={() => setSelectedGender(gender)}
@@ -241,19 +296,12 @@ const App = () => {
             {feedback && <p className={feedbackClass}>{feedback}</p>}
         </div>
 
-        <div className="wordList" style={{flex: 1, maxHeight: '90vh', overflowY: 'auto'}}>
-            {words.map((word) => (<div key={word.english}
-                                       className={`wordItem ${word.attemptStatus} ${word.english === currentWordEnglish ? 'current' : ''}`} // Add 'current' class if this is the current word
-                                       onClick={() => handleWordSelect(word.english)}>
-                {word.english}
-                <span onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering word selection
-                    toggleFavorite(word.english);
-                }}>
-            {word.isFavorite ? '❤️' : '🖤'}
-            </span>
-            </div>))}
-        </div>
+        <FullList
+            words={filteredWords}
+            onSelectWord={handleSelectWordFull}
+            currentSelectedWord={currentWordEnglishFull}
+            toggleFavorite={handleToggleFavorite}
+        />
 
     </div>);
 

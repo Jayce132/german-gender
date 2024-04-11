@@ -1,20 +1,23 @@
 .wordList {
-    width: 200px; /* Adjust width as needed */
+    width: 200px;
     padding: 10px;
-    background-color: var(--background-color); /* Light background for the list */
+    background-color: var(--background-color);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional: adds some depth */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .wordItem {
     position: relative;
     cursor: pointer;
     padding: 10px;
-    border: 1px solid #ccc;
+    /*border: 1px solid #ccc;*/
+    border-radius: 8px;
     margin: 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: #1a1a1a;
+
 }
 
 .favoriteIcon {
@@ -27,8 +30,13 @@
 }
 
 .current {
-    background-color: var(--highlight-color);
-    color: #fff;
+    /*background-color: var(--highlight-color);*/
+    /*color: #fff;*/
+    border: 1px solid;
+
+    border-color: var(--highlight-color);
+    color: var(--highlight-color);
+
 }
 
 .wordItem.correct {
