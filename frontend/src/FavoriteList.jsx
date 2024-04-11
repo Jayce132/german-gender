@@ -20,7 +20,7 @@ const FavoritesList = ({words, onSelectWord, currentSelectedWord, toggleFavorite
                 <span onClick={(e) => {
                     e.stopPropagation(); // Prevent parent div onClick
                     toggleFavorite(word.english);
-                }} className="favoriteIcon">
+                }} className="actionIcon">
                             <FontAwesomeIcon icon={word.isFavorite ? fasHeart : farHeart}/>
                         </span>
             </div>);

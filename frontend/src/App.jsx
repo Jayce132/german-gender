@@ -1,111 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import FullList from "./FullList.jsx";
 import FavoritesList from "./FavoriteList.jsx";
+import { db } from './firebaseConfig';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
-const wordsData = [{
-    "english": "apple",
-    "german": "Apfel",
-    "article": "der",
-    "translation": "the apple",
-    "image": "https://images.pexels.com/photos/206959/pexels-photo-206959.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "car",
-    "german": "Auto",
-    "article": "das",
-    "translation": "the car",
-    "image": "https://images.pexels.com/photos/1592384/pexels-photo-1592384.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "tree",
-    "german": "Baum",
-    "article": "der",
-    "translation": "the tree",
-    "image": "https://images.pexels.com/photos/1459495/pexels-photo-1459495.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "house",
-    "german": "Haus",
-    "article": "das",
-    "translation": "the house",
-    "image": "https://images.pexels.com/photos/164558/pexels-photo-164558.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "flower",
-    "german": "Blume",
-    "article": "die",
-    "translation": "the flower",
-    "image": "https://images.pexels.com/photos/1242286/pexels-photo-1242286.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "bicycle",
-    "german": "Fahrrad",
-    "article": "das",
-    "translation": "the bicycle",
-    "image": "https://images.pexels.com/photos/20814059/pexels-photo-20814059/free-photo-of-minimal-pic.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "sun",
-    "german": "Sonne",
-    "article": "die",
-    "translation": "the sun",
-    "image": "https://images.pexels.com/photos/87611/sun-fireball-solar-flare-sunlight-87611.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "moon",
-    "german": "Mond",
-    "article": "der",
-    "translation": "the moon",
-    "image": "https://images.pexels.com/photos/47367/full-moon-moon-bright-sky-47367.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "star",
-    "german": "Stern",
-    "article": "der",
-    "translation": "the star",
-    "image": "https://images.pexels.com/photos/980859/pexels-photo-980859.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "water",
-    "german": "Wasser",
-    "article": "das",
-    "translation": "the water",
-    "image": "https://images.pexels.com/photos/261403/pexels-photo-261403.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "book",
-    "german": "Buch",
-    "article": "das",
-    "translation": "the book",
-    "image": "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "cat",
-    "german": "Katze",
-    "article": "die",
-    "translation": "the cat",
-    "image": "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "dog",
-    "german": "Hund",
-    "article": "der",
-    "translation": "the dog",
-    "image": "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "computer",
-    "german": "Computer",
-    "article": "der",
-    "translation": "the computer",
-    "image": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "phone",
-    "german": "Telefon",
-    "article": "das",
-    "translation": "the phone",
-    "image": "https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "pen",
-    "german": "Stift",
-    "article": "der",
-    "translation": "the pen",
-    "image": "https://images.pexels.com/photos/7054511/pexels-photo-7054511.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "chair",
-    "german": "Stuhl",
-    "article": "der",
-    "translation": "the chair",
-    "image": "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg?auto=compress&cs=tinysrgb&w=800"
-}]
+
 
 const App = () => {
     const [words, setWords] = useState([]); // State to hold the processed words array
@@ -126,16 +26,29 @@ const App = () => {
 
     const [searchQuery, setSearchQuery] = useState(''); // State for the search query above main panel
 
-    // Process wordsData to add attemptStatus and isFavorite property
     useEffect(() => {
-        const processedWords = wordsData.map(word => ({
-            ...word, attemptStatus: 'unattempted', isFavorite: false,
-        }));
-        setWords(processedWords);
-        // Ensure the initial value is set correctly
-        if (processedWords.length > 0) {
-            setCurrentWordEnglishFull(processedWords[0].english);
-        }
+        const fetchAndProcessWords = async () => {
+            const wordsCollectionRef = collection(db, "words");
+            const q = query(wordsCollectionRef, orderBy("createdAt"));
+            const querySnapshot = await getDocs(q);
+            const fetchedWords = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+
+            // Process fetched words to add additional properties like attemptStatus and isFavorite
+            const processedWords = fetchedWords.map(word => ({
+                ...word,
+                attemptStatus: 'unattempted',
+                isFavorite: false,
+            }));
+
+            setWords(processedWords);
+
+            // Sets the current word to be the first word on the list
+            if (processedWords.length > 0) {
+                setCurrentWordEnglishFull(processedWords[0].english);
+            }
+        };
+
+        fetchAndProcessWords();
     }, []);
 
     // Find the current word based on its English name
@@ -245,9 +158,7 @@ const App = () => {
     };
 
     // Filtering logic for the main panel based on search query
-    const filteredWords = searchQuery.length > 0
-        ? words.filter(word => word.english.toLowerCase().includes(searchQuery.toLowerCase()))
-        : words;
+    const filteredWords = searchQuery.length > 0 ? words.filter(word => word.english.toLowerCase().includes(searchQuery.toLowerCase())) : words;
 
 
     return (<div className="App" style={{display: 'flex', flexDirection: 'row', alignItems: 'start', height: '100vh'}}>

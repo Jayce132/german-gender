@@ -18,6 +18,7 @@
     align-items: center;
     background-color: #1a1a1a;
 
+    border: 1px solid transparent;
 }
 
 .favoriteIcon {
@@ -25,8 +26,9 @@
     cursor: pointer;
 }
 
-.wordItem:hover .favoriteIcon {
+.wordItem:hover .actionIcon {
     display: inline;
+    border-color: var(--highlight-color);
 }
 
 .current {
@@ -49,3 +51,38 @@
     color: #fff;
 }
 
+.actions {
+    display: flex;
+    gap: 15px; /* Adjust the space between icons as needed */
+}
+
+.actionIcon {
+    display: none;
+    cursor: pointer;
+}
+
+.addNewWord {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 5px 15px; /* Adjust as needed */
+    border-radius: 8px;
+    background-color: #1a1a1a;
+    cursor: pointer;
+    color: var(--highlight-color);
+}
+
+/* Ensure action icons don't appear on the 'Add new word' element */
+.addNewWord .actions {
+    display: none;
+}
+
+/* Adjust .actions hover to not apply to .addNewWord */
+.wordItem:not(.addNewWord):hover .actionIcon {
+    display: inline;
+}
+
+.wordItem:hover {
+    border-color: var(--highlight-color);
+}
