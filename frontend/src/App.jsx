@@ -179,31 +179,51 @@ const App = () => {
     const handleSaveWord = async (wordData, id = null) => {
         if (id) {
             try {
+                // Update an existing word
                 await updateWord(id, wordData);
+                // Update the word in the local state as well
+                const updatedWords = words.map(word => word.id === id ? {...word, ...wordData} : word);
+                setWords(updatedWords);
             } catch (error) {
-                console.error("Error updating word: ", wordData);
+                console.error("Error updating word: ", error);
             }
         } else {
             try {
-                await addWord(wordData);
+                // Add a new word and get the reference to the newly added word
+                const wordRef = await addWord(wordData);
+                // Assuming addWord returns a reference with an id
+                const newWord = {...wordData, id: wordRef.id, attemptStatus: 'unattempted', isFavorite: false};
+                const updatedWords = [...words, newWord];
+                setWords(updatedWords);
             } catch (error) {
-                console.error("Error adding word: ", wordData);
+                console.error("Error adding word: ", error);
             }
-
         }
-        handleFetchAndProcessWords();
         closeModal();
+        // Reset the selected word
+        if (words.length > 0) {
+            setCurrentWordEnglishFull(words[0].english);
+        }
     };
 
     const handleDeleteWord = async (id) => {
         try {
             await deleteWord(id);
+            // Remove the word from the state without affecting `isFavorite` and `attemptStatus` of others
+            const updatedWords = words.filter(word => word.id !== id);
+            setWords(updatedWords);
             console.log(`Word with ID: ${id} deleted`);
-            handleFetchAndProcessWords();
+
+            if (updatedWords.length > 0) {
+                // Reset to the first word in the list
+                setCurrentWordEnglishFull(updatedWords[0].english);
+            } else {
+                // List is empty, open modal to add a new word
+                setIsModalOpen(true);
+            }
         } catch (error) {
             console.error("Error deleting word: ", error);
         }
-
     };
 
 
