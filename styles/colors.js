@@ -1,6 +1,5 @@
 export default {
     backgroundColor: '#242424',
-    cardBackgroundColor: '#363636',
     highlightColor: '#74B3CE',
     successColor: '#5FAD56',
     errorColor: '#E54B4B',
