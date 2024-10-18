@@ -17,6 +17,7 @@ const App = () => {
                 barStyle="light-content"
                 backgroundColor={colors.backgroundColor}
             />
+
             <Navbar setComponent={setSelectedComponent}/>
             <View style={styles.mainContainer}>
                 {selectedComponent === 'Home' && <Home/>}
