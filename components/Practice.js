@@ -1,28 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard,
+    SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import FullList from './FullList';
 import colors from '../styles/colors';
 import wordsData from '../data/wordsData';
 
-// // Hardcoded wordsData array without images
-// const wordsData = [{
-//     english: 'apple', german: 'Apfel', article: 'der', translation: 'the apple',
-// }, {
-//     english: 'car', german: 'Auto', article: 'das', translation: 'the car',
-// }, {
-//     english: 'tree', german: 'Baum', article: 'der', translation: 'the tree',
-// }, {
-//     english: 'house', german: 'Haus', article: 'das', translation: 'the house',
-// }, {
-//     english: 'flower', german: 'Blume', article: 'die', translation: 'the flower',
-// },];
-
-const Practice = () => {
+const Practice = ({ numWordsToPractice, wordType }) => {
     const [words, setWords] = useState([]);
     const [selectedGender, setSelectedGender] = useState('');
-    const [germanNoun, setGermanNoun] = useState('');
+    const [germanWordInput, setGermanWordInput] = useState('');
     const [feedback, setFeedback] = useState('');
     const [feedbackClass, setFeedbackClass] = useState('');
     const [isReview, setIsReview] = useState(false);
@@ -30,29 +17,21 @@ const Practice = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentWordToShow, setCurrentWordToShow] = useState({});
     const [listMode, setListMode] = useState('full'); // Tracks 'full' or 'favorites'
-    const [keyboardVisible, setKeyboardVisible] = useState(false);
-
-    useEffect(() => {
-        // handle keyboard show event
-        const handleKeyboardShow = () => setKeyboardVisible(true);
-        // handle keyboard hide event
-        const handleKeyboardHide = () => setKeyboardVisible(false);
-
-        // add event listeners for keyboard show and hide events
-        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
-        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
-
-        // cleanup function to remove event listeners when the component unmounts
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-        };
-    }, []);
 
     // Initialize and process words on mount
     const handleFetchAndProcessWords = () => {
-        const processedWords = wordsData.map((word, index) => ({
-            ...word, attemptStatus: 'unattempted', isFavorite: false, id: `${word.english}-${index}`,
+        // Get words array for the selected word type
+        const wordList = wordsData[wordType] || [];
+
+        // Limit the number of words
+        const limitedWords = wordList.slice(0, numWordsToPractice);
+
+        const processedWords = limitedWords.map((word, index) => ({
+            ...word,
+            attemptStatus: 'unattempted',
+            isFavorite: false,
+            id: `${word.english}-${index}`,
+            type: wordType,
         }));
         setWords(processedWords);
 
@@ -63,32 +42,58 @@ const Practice = () => {
 
     useEffect(() => {
         handleFetchAndProcessWords();
-    }, []);
+    }, [numWordsToPractice, wordType]);
 
     // Filter words based on search query
-    const filteredWords = searchQuery.length > 0 ? words.filter((word) => word.english.toLowerCase().includes(searchQuery.toLowerCase())) : words;
+    const filteredWords =
+        searchQuery.length > 0
+            ? words.filter((word) =>
+                word.english.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            : words;
 
     // Filter favorites based on listMode and search query
-    const filteredFavorites = listMode === 'favorites' ? filteredWords.filter((word) => word.isFavorite) : words.filter((word) => word.isFavorite && (searchQuery === '' || word.english.toLowerCase().includes(searchQuery.toLowerCase())));
+    const filteredFavorites =
+        listMode === 'favorites'
+            ? filteredWords.filter((word) => word.isFavorite)
+            : words.filter(
+                (word) =>
+                    word.isFavorite &&
+                    (searchQuery === '' ||
+                        word.english.toLowerCase().includes(searchQuery.toLowerCase()))
+            );
     const hasFavorites = filteredFavorites.length > 0;
     const hasMatches = filteredWords.length > 0;
 
     // Update currentWordToShow whenever currentWordEnglish or words change
     useEffect(() => {
-        const word = words.find((word) => word.english === currentWordEnglish) || {};
+        const word =
+            words.find((word) => word.english === currentWordEnglish) || {};
         setCurrentWordToShow(word);
     }, [currentWordEnglish, words]);
 
     // Handle answer submission
     const handleAnswerCheck = () => {
-        const currentWord = words.find((word) => word.english === currentWordEnglish);
-        const isCorrect = selectedGender === currentWord.article && germanNoun.toLowerCase() === currentWord.german.toLowerCase();
+        const currentWord = words.find(
+            (word) => word.english === currentWordEnglish
+        );
+        let isCorrect = false;
+
+        if (currentWord.type === 'noun') {
+            isCorrect =
+                selectedGender === currentWord.article &&
+                germanWordInput.toLowerCase() === currentWord.german.toLowerCase();
+        } else {
+            isCorrect =
+                germanWordInput.toLowerCase() === currentWord.german.toLowerCase();
+        }
 
         // Update attemptStatus for the current word
         const updatedWords = words.map((word) => {
             if (word.english === currentWordEnglish) {
                 return {
-                    ...word, attemptStatus: isCorrect ? 'correct' : 'incorrect',
+                    ...word,
+                    attemptStatus: isCorrect ? 'correct' : 'incorrect',
                 };
             }
             return word;
@@ -97,7 +102,12 @@ const Practice = () => {
         setWords(updatedWords);
 
         // Set feedback message
-        setFeedback(isCorrect ? `Correct!` : `Wrong! Correct: ${currentWord.article} ${currentWord.german}`);
+        let correctAnswer = currentWord.german;
+        if (currentWord.type === 'noun') {
+            correctAnswer = `${currentWord.article} ${currentWord.german}`;
+        }
+
+        setFeedback(isCorrect ? 'Correct!' : `Wrong! Correct: ${correctAnswer}`);
         setFeedbackClass(isCorrect ? 'textSuccess' : 'textError');
 
         // Enter review mode
@@ -106,8 +116,11 @@ const Practice = () => {
 
     // Handle moving to the next word
     const handleContinue = () => {
-        const currentList = listMode === 'full' ? words : words.filter((word) => word.isFavorite);
-        const currentIndex = currentList.findIndex((word) => word.english === currentWordEnglish); // Unique ID for FlatList
+        const currentList =
+            listMode === 'full' ? words : words.filter((word) => word.isFavorite);
+        const currentIndex = currentList.findIndex(
+            (word) => word.english === currentWordEnglish
+        );
         const nextIndex = (currentIndex + 1) % currentList.length;
         const nextWord = currentList[nextIndex].english;
 
@@ -115,7 +128,7 @@ const Practice = () => {
 
         // Reset form states
         setSelectedGender('');
-        setGermanNoun('');
+        setGermanWordInput('');
         setFeedback('');
         setIsReview(false);
     };
@@ -133,17 +146,17 @@ const Practice = () => {
     const handleSelectWord = (wordEnglish) => {
         setCurrentWordEnglish(wordEnglish);
         setSelectedGender('');
-        setGermanNoun('');
+        setGermanWordInput('');
         setFeedback('');
         setIsReview(false);
         setSearchQuery('');
     };
 
-    // Automatically switch to 'full' mode if no favorites are present
+    // Handle toggling favorites
     const handleToggleFavorite = (wordEnglish) => {
         const updatedWords = words.map((word) => {
             if (word.english === wordEnglish) {
-                return {...word, isFavorite: !word.isFavorite};
+                return { ...word, isFavorite: !word.isFavorite };
             }
             return word;
         });
@@ -165,7 +178,7 @@ const Practice = () => {
 
     return (
         <SafeAreaView style={styles.app}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor}/>
+            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor} />
             <View style={styles.mainContainer}>
                 <View style={styles.searchContainer}>
                     <TextInput
@@ -183,20 +196,34 @@ const Practice = () => {
                         <View style={styles.toggleButtonsContainer}>
                             <TouchableOpacity
                                 onPress={() => setListMode('full')}
-                                style={[styles.toggleButton, listMode === 'full' && styles.activeToggleButton]}
+                                style={[
+                                    styles.toggleButton,
+                                    listMode === 'full' && styles.activeToggleButton,
+                                ]}
                             >
                                 <Text
-                                    style={[styles.toggleButtonText, listMode === 'full' && styles.activeToggleButtonText]}>
+                                    style={[
+                                        styles.toggleButtonText,
+                                        listMode === 'full' && styles.activeToggleButtonText,
+                                    ]}
+                                >
                                     Full List
                                 </Text>
                             </TouchableOpacity>
                             {hasFavorites && (
                                 <TouchableOpacity
                                     onPress={() => setListMode('favorites')}
-                                    style={[styles.toggleButton, listMode === 'favorites' && styles.activeToggleButton]}
+                                    style={[
+                                        styles.toggleButton,
+                                        listMode === 'favorites' && styles.activeToggleButton,
+                                    ]}
                                 >
                                     <Text
-                                        style={[styles.toggleButtonText, listMode === 'favorites' && styles.activeToggleButtonText]}>
+                                        style={[
+                                            styles.toggleButtonText,
+                                            listMode === 'favorites' && styles.activeToggleButtonText,
+                                        ]}
+                                    >
                                         Favorite List
                                     </Text>
                                 </TouchableOpacity>
@@ -214,46 +241,70 @@ const Practice = () => {
                         </View>
 
                         {/* Main Content - Conditionally Rendered */}
-                        {!keyboardVisible && currentWordToShow.english && (
+                        {currentWordToShow.english && (
                             <View style={styles.mainContent}>
                                 <View key={currentWordToShow.english} style={styles.fadeIn}>
                                     {!isReview ? (
                                         <Text style={styles.wordDisplayText}>
-                                            {`the ${currentWordToShow.english}`}
+                                            {/* Display English word appropriately based on type */}
+                                            {currentWordToShow.type === 'verb'
+                                                ? currentWordToShow.english
+                                                : currentWordToShow.english}
                                         </Text>
                                     ) : (
                                         <Text style={styles.wordDisplayText}>
-                                            {`${selectedGender} ${germanNoun[0].toUpperCase() + germanNoun.slice(1).toLowerCase()}`}
+                                            {currentWordToShow.type === 'noun' && selectedGender
+                                                ? `${selectedGender} ${germanWordInput
+                                                    .slice(0, 1)
+                                                    .toUpperCase()}${germanWordInput
+                                                    .slice(1)
+                                                    .toLowerCase()}`
+                                                : `${germanWordInput
+                                                    .slice(0, 1)
+                                                    .toUpperCase()}${germanWordInput
+                                                    .slice(1)
+                                                    .toLowerCase()}`}
                                         </Text>
                                     )}
                                 </View>
 
                                 {/* Conditional Rendering: Show Form or Feedback */}
-                                {!isReview ? ( // Display Forms
+                                {!isReview ? (
                                     <>
-                                        {/* Gender Buttons */}
-                                        <View style={styles.genderButtonContainer}>
-                                            {['der', 'die', 'das'].map((gender) => (
-                                                <TouchableOpacity
-                                                    key={gender}
-                                                    onPress={() => setSelectedGender(gender)}
-                                                    style={[styles.genderSelectButton, selectedGender === gender && styles.selectedGenderButton]}
-                                                >
-                                                    <Text
-                                                        style={[styles.genderButtonText, selectedGender === gender && styles.selectedGenderText]}>
-                                                        {gender}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </View>
+                                        {/* Gender Buttons - Only for Nouns */}
+                                        {currentWordToShow.type === 'noun' && (
+                                            <View style={styles.genderButtonContainer}>
+                                                {['der', 'die', 'das'].map((gender) => (
+                                                    <TouchableOpacity
+                                                        key={gender}
+                                                        onPress={() => setSelectedGender(gender)}
+                                                        style={[
+                                                            styles.genderSelectButton,
+                                                            selectedGender === gender &&
+                                                            styles.selectedGenderButton,
+                                                        ]}
+                                                    >
+                                                        <Text
+                                                            style={[
+                                                                styles.genderButtonText,
+                                                                selectedGender === gender &&
+                                                                styles.selectedGenderText,
+                                                            ]}
+                                                        >
+                                                            {gender}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        )}
 
-                                        {/* German Noun Form */}
-                                        <View style={styles.germanNounForm}>
+                                        {/* German Word Input */}
+                                        <View style={styles.germanWordForm}>
                                             <TextInput
-                                                style={styles.germanNounInput}
-                                                value={germanNoun}
-                                                onChangeText={(text) => setGermanNoun(text)}
-                                                placeholder="Type the German noun"
+                                                style={styles.germanWordInput}
+                                                value={germanWordInput}
+                                                onChangeText={(text) => setGermanWordInput(text)}
+                                                placeholder={`Type the German ${currentWordToShow.type}`}
                                                 placeholderTextColor="#999"
                                                 editable={!isReview}
                                             />
@@ -262,20 +313,25 @@ const Practice = () => {
                                                 disabled={words.length === 0}
                                                 style={[styles.submitButton]}
                                             >
-                                                <Text style={styles.submitButtonText}>
-                                                    Submit
-                                                </Text>
+                                                <Text style={styles.submitButtonText}>Submit</Text>
                                             </TouchableOpacity>
                                         </View>
                                     </>
-                                ) : ( // Display Feedback and Continue Button
+                                ) : (
+                                    // Display Feedback and Continue Button
                                     <>
                                         <Text
-                                            style={[styles.feedbackText, feedbackClass === 'textSuccess' ? styles.textSuccess : styles.textError]}>
+                                            style={[
+                                                styles.feedbackText,
+                                                feedbackClass === 'textSuccess'
+                                                    ? styles.textSuccess
+                                                    : styles.textError,
+                                            ]}
+                                        >
                                             {feedback}
                                         </Text>
                                         <TouchableOpacity
-                                            onPress={handleSubmit} // Reusing handleSubmit for Continue
+                                            onPress={handleSubmit}
                                             style={[styles.submitButton, styles.continueButton]}
                                         >
                                             <Text style={styles.submitButtonText}>Continue</Text>
@@ -383,12 +439,12 @@ const styles = StyleSheet.create({
     selectedGenderText: {
         color: colors.highlightColor,
     },
-    germanNounForm: {
+    germanWordForm: {
         flexDirection: 'column',
         alignItems: 'center',
         marginTop: 20,
     },
-    germanNounInput: {
+    germanWordInput: {
         width: '80%',
         height: 40,
         borderColor: 'gray',

@@ -1,8 +1,8 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 
-const Navbar = ({setComponent}) => {
+const Navbar = ({ setComponent }) => {
     return (
         <View style={styles.navbar}>
             <TouchableOpacity onPress={() => setComponent('Home')} style={styles.titleContainer}>
@@ -14,12 +14,6 @@ const Navbar = ({setComponent}) => {
                     style={styles.navButton}
                 >
                     <Text style={styles.navButtonText}>Learn</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => setComponent('Practice')}
-                    style={styles.navButton}
-                >
-                    <Text style={styles.navButtonText}>Practice</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -35,7 +29,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 20,
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 3,
