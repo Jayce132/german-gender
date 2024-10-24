@@ -33,6 +33,7 @@ const App = () => {
                     <Practice
                         numWordsToPractice={numWordsToPractice}
                         wordType={wordType}
+                        setSelectedComponent={setSelectedComponent}
                     />
                 )}
             </View>
