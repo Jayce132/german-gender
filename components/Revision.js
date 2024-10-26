@@ -95,8 +95,8 @@ const Revision = ({ words, onReady }) => {
             {/* Custom Alert Modal */}
             <CustomAlert
                 visible={isAlertVisible}
-                title="Warning"
-                message="You have not seen all the words yet. Are you sure you want to continue?"
+                title="Ready?"
+                message="You have not seen all the words yet."
                 onCancel={handleCancel}
                 onContinue={handleContinue}
             />
