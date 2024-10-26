@@ -5,7 +5,6 @@ export default {
     successColor: '#5FAD56',
     errorColor: '#E54B4B',
     buttonBackgroundColor: '#1a1a1a',
-    disabledButtonColor: '#202020',
     inputBackgroundColor: 'rgb(28,28,30)',
     textColor: 'rgba(255, 255, 255, 0.87)',
 };

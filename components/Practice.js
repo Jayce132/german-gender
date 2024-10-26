@@ -136,8 +136,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
             <View style={styles.mainContainer}>
                 {!isReady ? (
                     <Revision
-                        numWordsToPractice={numWordsToPractice}
-                        wordType={wordType}
+                        words={words}
                         onReady={() => setIsReady(true)}
                     />
                 ) : (

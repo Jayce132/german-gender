@@ -1,28 +1,12 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
-import wordsData from '../data/wordsData';
+import CustomAlert from './CustomAlert';
 
-const Revision = ({numWordsToPractice, wordType, onReady}) => {
-    const [words, setWords] = useState([]);
+const Revision = ({ words, onReady }) => {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
-
-    useEffect(() => {
-        const handleFetchAndProcessWords = () => {
-            const wordList = wordsData[wordType] || [];
-            const shuffledWords = wordList.sort(() => Math.random() - 0.5);
-            const limitedWords = shuffledWords.slice(0, numWordsToPractice);
-            const processedWords = limitedWords.map((word, index) => ({
-                ...word,
-                id: `${word.english}-${index}`,
-                type: wordType,
-            }));
-            setWords(processedWords);
-        };
-
-        handleFetchAndProcessWords();
-    }, [numWordsToPractice, wordType]);
+    const [isAlertVisible, setIsAlertVisible] = useState(false);
 
     const handleNext = () => {
         if (currentWordIndex < words.length - 1) {
@@ -36,28 +20,48 @@ const Revision = ({numWordsToPractice, wordType, onReady}) => {
         }
     };
 
+    const handleReady = () => {
+        // Check if the user has seen all the words
+        if (currentWordIndex < words.length - 1) {
+            setIsAlertVisible(true);
+        } else {
+            onReady();
+        }
+    };
+
+    const handleCancel = () => {
+        setIsAlertVisible(false);
+    };
+
+    const handleContinue = () => {
+        setIsAlertVisible(false);
+        onReady();
+    };
+
     const currentWord = words[currentWordIndex];
 
     return (
         <View style={styles.container}>
             <View style={styles.content}>
-                {currentWord && <Flashcard item={currentWord}/>}
-
-                {/* English sentence with highlighted word */}
-                {currentWord && (
-                    <Text style={styles.sentence}>
-                        Lorem ipsum <Text style={styles.highlight}>{currentWord.english}</Text> dolor sit amet, consectetur adipiscing elit.
-                    </Text>
-                )}
+                {currentWord && <Flashcard item={currentWord} />}
 
                 {/* German sentence with highlighted word */}
                 {currentWord && (
                     <Text style={styles.sentence}>
-                        Lorem ipsum <Text style={styles.highlight}>{currentWord.german}</Text> dolor sit amet, consectetur adipiscing elit.
+                        Lorem ipsum <Text style={styles.highlight}>{currentWord.german}</Text> dolor sit amet,
+                        consectetur adipiscing elit.
                     </Text>
                 )}
 
-                <TouchableOpacity onPress={onReady} style={styles.readyButton}>
+                {/* English sentence with highlighted word */}
+                {currentWord && (
+                    <Text style={styles.sentence}>
+                        Lorem ipsum <Text style={styles.highlight}>{currentWord.english}</Text> dolor sit amet,
+                        consectetur adipiscing elit.
+                    </Text>
+                )}
+
+                <TouchableOpacity onPress={handleReady} style={styles.readyButton}>
                     <Text style={styles.readyButtonText}>Ready</Text>
                 </TouchableOpacity>
             </View>
@@ -66,7 +70,7 @@ const Revision = ({numWordsToPractice, wordType, onReady}) => {
                 {/* Previous button, always visible */}
                 <TouchableOpacity
                     onPress={handlePrevious}
-                    style={styles.navButton}
+                    style={[styles.navButton, currentWordIndex === 0 && styles.hiddenButton]}
                     disabled={currentWordIndex === 0}>
                     <Text style={styles.navButtonText}>Previous</Text>
                 </TouchableOpacity>
@@ -81,11 +85,21 @@ const Revision = ({numWordsToPractice, wordType, onReady}) => {
                 {/* Next button, always visible */}
                 <TouchableOpacity
                     onPress={handleNext}
-                    style={styles.navButton}
+                    style={[styles.navButton, currentWordIndex === words.length - 1 && styles.hiddenButton]}
                     disabled={currentWordIndex === words.length - 1}>
-                    <Text style={styles.navButtonText}>Next</Text>
+                    <Text
+                        style={styles.navButtonText}>Next</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Custom Alert Modal */}
+            <CustomAlert
+                visible={isAlertVisible}
+                title="Warning"
+                message="You have not seen all the words yet. Are you sure you want to continue?"
+                onCancel={handleCancel}
+                onContinue={handleContinue}
+            />
         </View>
     );
 };
@@ -147,6 +161,9 @@ const styles = StyleSheet.create({
         color: colors.textColor,
         fontSize: 28,
         fontWeight: '500',
+    },
+    hiddenButton: {
+        opacity: 0,
     },
 });
 
