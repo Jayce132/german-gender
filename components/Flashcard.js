@@ -47,6 +47,7 @@ const Flashcard = ({ item }) => {
 
 const styles = StyleSheet.create({
     card: {
+        backgroundColor: colors.cardBackgroundColor,
         width: '100%',
         borderRadius: 10,
         marginVertical: 10,
