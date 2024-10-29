@@ -1,49 +1,96 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    Dimensions,
 } from 'react-native';
 import colors from '../styles/colors';
 import wordsData from '../data/wordsData';
 import Revision from './Revision';
+import CustomAlert from './CustomAlert';
+import UnderlineInput from "./UnderlineInput";
 
-const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
+const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [selectedGender, setSelectedGender] = useState('');
     const [germanWordInput, setGermanWordInput] = useState('');
-    const [feedback, setFeedback] = useState('');
-    const [feedbackClass, setFeedbackClass] = useState('');
     const [isReview, setIsReview] = useState(false);
     const [practiceRound, setPracticeRound] = useState(1);
     const [isReady, setIsReady] = useState(false);
+    // Will be used for feedback with UnderlineInput, letter color based on correct or incorrect
+    const [letterStatuses, setLetterStatuses] = useState([]);
 
-    // Initialize and process words on mount
+    // State for CustomAlert
+    const [isCustomAlertVisible, setIsCustomAlertVisible] = useState(false);
+    const [alertOptions, setAlertOptions] = useState({
+        title: '',
+        message: '',
+        onCancel: () => {},
+        onContinue: () => {},
+    });
+
+    // Calculate pill size based on screen width and number of words
+    const screenWidth = Dimensions.get('window').width;
+    const pillMargin = 2;
+    const totalPills = words.length || numWordsToPractice;
+    const maxPillContainerWidth = screenWidth - 40; // Adjust for padding
+    const totalMargin = (totalPills - 1) * pillMargin * 2;
+    const availableWidth = maxPillContainerWidth - totalMargin;
+    const pillWidth = Math.min(availableWidth / totalPills, 20); // Max pill width
+    const pillHeight = 10; // Adjust as needed
+
+    /**
+     * Shuffles an array using the Fisher-Yates algorithm.
+     * @param {Array} array - The array to shuffle.
+     * @returns {Array} - The shuffled array.
+     */
+    const shuffleArray = (array) => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
+
+    /**
+     * Initializes the practice session by selecting random words.
+     */
     useEffect(() => {
-        const handleFetchAndProcessWords = () => {
-            // Get words array for the selected word type
+        const initializeWords = () => {
+            // Retrieve the word list for the selected type
             const wordList = wordsData[wordType] || [];
 
-            // Shuffle the word list
-            const shuffledWords = wordList.sort(() => Math.random() - 0.5);
-
-            // Limit the number of words
-            const limitedWords = shuffledWords.slice(0, numWordsToPractice);
-
-            const processedWords = limitedWords.map((word, index) => ({
+            // Map words and add necessary properties
+            const wordsWithProperties = wordList.map((word, index) => ({
                 ...word,
                 attemptStatus: 'unattempted',
-                id: `${word.english}-${index}`,
+                id: `${word.english}-${index}-initial`, // Unique ID including round
                 type: wordType,
             }));
-            setWords(processedWords);
+
+            // Shuffle the words randomly
+            const shuffledWords = shuffleArray(wordsWithProperties);
+
+            // Select the top `numWordsToPractice` words
+            const selectedWords = shuffledWords.slice(0, numWordsToPractice);
+
+            setWords(selectedWords);
         };
 
-        handleFetchAndProcessWords();
+        initializeWords();
     }, [numWordsToPractice, wordType]);
 
     const currentWord = words[currentWordIndex];
 
-    // Handle answer submission
+    /**
+     * Handles the user's answer submission.
+     */
     const handleAnswerCheck = () => {
         let isCorrect = false;
 
@@ -69,20 +116,28 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
 
         setWords(updatedWords);
 
-        // Set feedback message
-        let correctAnswer = currentWord.german;
-        if (currentWord.type === 'noun') {
-            correctAnswer = `${currentWord.article} ${currentWord.german}`;
-        }
+        // Generate letterStatuses for feedback using UnderlineInput
+        const correctAnswer = currentWord.german.toLowerCase();
+        const userAnswer = germanWordInput.toLowerCase();
+        const maxLength = Math.max(correctAnswer.length, userAnswer.length);
+        const newLetterStatuses = [];
 
-        setFeedback(isCorrect ? 'Correct!' : `Wrong! Correct: ${correctAnswer}`);
-        setFeedbackClass(isCorrect ? 'textSuccess' : 'textError');
+        for (let i = 0; i < maxLength; i++) {
+            if (userAnswer[i] === correctAnswer[i]) {
+                newLetterStatuses.push('correct');
+            } else {
+                newLetterStatuses.push('incorrect');
+            }
+        }
+        setLetterStatuses(newLetterStatuses);
 
         // Enter review mode
         setIsReview(true);
     };
 
-    // Handle moving to the next word
+    /**
+     * Handles moving to the next word or prompting for retry/home.
+     */
     const handleContinue = () => {
         // Check if we have reached the end of the words list
         if (currentWordIndex + 1 >= words.length) {
@@ -90,21 +145,14 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
             const incorrectWords = words.filter(word => word.attemptStatus === 'incorrect');
 
             if (incorrectWords.length > 0) {
-                // Reset the words array to only incorrect words and generate new IDs
-                const resetWords = incorrectWords.map((word, index) => ({
-                    ...word,
-                    attemptStatus: 'unattempted',
-                    id: `${word.english}-retry-${practiceRound}-${index}`, // Generate new unique ID
-                }));
-                setWords(resetWords);
-                setCurrentWordIndex(0);
-                setPracticeRound(practiceRound + 1);
-
-                // Reset form states
-                setSelectedGender('');
-                setGermanWordInput('');
-                setFeedback('');
-                setIsReview(false);
+                // Configure CustomAlert options
+                setAlertOptions({
+                    title: 'Retry or Go Home',
+                    message: 'You have incorrect words. Would you like to retry them or go back home?',
+                    onCancel: handleGoHome,
+                    onContinue: handleRetry,
+                });
+                setIsCustomAlertVisible(true);
             } else {
                 // All words have been practiced correctly, navigate back to Home
                 setSelectedComponent('Home');
@@ -116,23 +164,76 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
             // Reset form states
             setSelectedGender('');
             setGermanWordInput('');
-            setFeedback('');
             setIsReview(false);
         }
     };
 
-    // Unified submit/continue handler
+    /**
+     * Handles retrying the incorrect words.
+     */
+    const handleRetry = () => {
+        // Extract incorrect words
+        const incorrectWords = words.filter(word => word.attemptStatus === 'incorrect');
+
+        if (incorrectWords.length === 0) {
+            // No incorrect words to retry
+            setSelectedComponent('Home');
+            return;
+        }
+
+        // Shuffle the incorrect words
+        const shuffledIncorrectWords = shuffleArray(incorrectWords);
+
+        // Select up to `numWordsToPractice` words for retry
+        const retryWords = shuffledIncorrectWords.slice(0, Math.min(numWordsToPractice, incorrectWords.length));
+
+        // Reset the words array to only incorrect words
+        const resetWords = retryWords.map((word, index) => ({
+            ...word,
+            attemptStatus: 'unattempted',
+            id: `${word.english}-retry-${practiceRound}-${index}`, // Generate new unique ID
+        }));
+        setWords(resetWords);
+        setCurrentWordIndex(0);
+        setPracticeRound(practiceRound + 1);
+
+        // Reset form states
+        setSelectedGender('');
+        setGermanWordInput('');
+        setIsReview(false);
+    };
+
+    /**
+     * Handles navigating back to the Home screen.
+     */
+    const handleGoHome = () => {
+        setSelectedComponent('Home');
+    };
+
+    /**
+     * Unified submit/continue handler.
+     */
     const handleSubmit = () => {
         if (!isReview) {
             handleAnswerCheck();
         } else {
+            setLetterStatuses([]); // Reset letter statuses
             handleContinue();
         }
     };
 
+    // Define pillStyle inside the component to use dynamic sizes
+    const pillStyle = {
+        width: pillWidth,
+        height: pillHeight,
+        borderRadius: pillHeight / 2,
+        marginHorizontal: pillMargin,
+        backgroundColor: colors.buttonBackgroundColor,
+    };
+
     return (
         <SafeAreaView style={styles.app}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor}/>
+            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor} />
             <View style={styles.mainContainer}>
                 {!isReady ? (
                     <Revision
@@ -141,37 +242,24 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
                     />
                 ) : (
                     <>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            style={styles.wordListContainer}
-                            contentContainerStyle={styles.wordListContent}
-                        >
+                        {/* Pills at the Top */}
+                        <View style={styles.pillsContainer}>
                             {words.map((word, index) => {
                                 const isCurrent = index === currentWordIndex;
-                                const itemStyles = [styles.wordItem];
-                                const textStyles = [styles.wordItemText];
-
+                                let pillStyles = [pillStyle];
                                 if (isCurrent) {
-                                    itemStyles.push(styles.currentWordItem);
-                                    textStyles.push(styles.currentWordText);
-                                }
-
-                                if (word.attemptStatus === 'correct') {
-                                    itemStyles.push(styles.correctWordItem);
-                                    textStyles.push(styles.statusText);
+                                    pillStyles.push({ backgroundColor: colors.highlightColor });
+                                } else if (word.attemptStatus === 'correct') {
+                                    pillStyles.push({ backgroundColor: colors.successColor });
                                 } else if (word.attemptStatus === 'incorrect') {
-                                    itemStyles.push(styles.incorrectWordItem);
-                                    textStyles.push(styles.statusText);
+                                    pillStyles.push({ backgroundColor: colors.errorColor });
                                 }
 
                                 return (
-                                    <View key={word.id} style={itemStyles}>
-                                        <Text style={textStyles}>{word.english}</Text>
-                                    </View>
+                                    <View key={word.id} style={pillStyles} />
                                 );
                             })}
-                        </ScrollView>
+                        </View>
 
                         {/* Main Content */}
                         {currentWord && (
@@ -188,69 +276,68 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
                                         </Text>
                                     ) : (
                                         <Text style={styles.wordDisplayText}>
-                                            {currentWord.type === 'noun' && selectedGender
-                                                ? `${selectedGender} ${germanWordInput
-                                                    .slice(0, 1)
-                                                    .toUpperCase()}${germanWordInput
-                                                    .slice(1)
-                                                    .toLowerCase()}`
-                                                : `${germanWordInput
-                                                    .slice(0, 1)
-                                                    .toUpperCase()}${germanWordInput
-                                                    .slice(1)
-                                                    .toLowerCase()}`}
+                                            {currentWord.type === 'noun'
+                                                ? `${currentWord.article} ${currentWord.german}`
+                                                : `${currentWord.german}`}
                                         </Text>
                                     )}
                                 </View>
 
-                                {/* Display Word Placeholder */}
-                                {!isReview && (
-                                    <View style={styles.placeholderContainer}>
-                                        {Array.from({length: currentWord.german.length}).map((_, index) => (
-                                            <Text key={index} style={styles.placeholderText}>_</Text>
-                                        ))}
+                                {/* Gender Buttons - Only for Nouns */}
+                                {currentWord.type === 'noun' && (
+                                    <View style={styles.genderButtonContainer}>
+                                        {['der', 'die', 'das'].map((gender) => {
+                                            const isSelected = selectedGender === gender;
+                                            const isCorrectArticle = currentWord.article === gender;
+                                            let buttonStyle = [styles.genderSelectButton];
+                                            let textStyle = [styles.genderButtonText];
+
+                                            if (isSelected) {
+                                                buttonStyle.push(styles.selectedGenderButton);
+                                                textStyle.push(styles.selectedGenderText);
+                                            }
+
+                                            if (isReview && isSelected) {
+                                                if (isCorrectArticle) {
+                                                    buttonStyle.push(styles.correctBackground, styles.correctBorder);
+                                                    textStyle.push(styles.whiteText);
+                                                } else {
+                                                    buttonStyle.push(styles.incorrectBackground, styles.incorrectBorder);
+                                                    textStyle.push(styles.whiteText);
+                                                }
+                                            }
+
+                                            return (
+                                                <TouchableOpacity
+                                                    key={gender}
+                                                    onPress={() => {
+                                                        if (!isReview) setSelectedGender(gender);
+                                                    }}
+                                                    style={buttonStyle}
+                                                    disabled={isReview}
+                                                >
+                                                    <Text style={textStyle}>
+                                                        {gender}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
                                     </View>
                                 )}
 
-                                {/* Conditional Rendering: Show Form or Feedback */}
                                 {!isReview ? (
                                     <>
-                                        {/* Gender Buttons - Only for Nouns */}
-                                        {currentWord.type === 'noun' && (
-                                            <View style={styles.genderButtonContainer}>
-                                                {['der', 'die', 'das'].map((gender) => (
-                                                    <TouchableOpacity
-                                                        key={gender}
-                                                        onPress={() => setSelectedGender(gender)}
-                                                        style={[
-                                                            styles.genderSelectButton,
-                                                            selectedGender === gender &&
-                                                            styles.selectedGenderButton,
-                                                        ]}
-                                                    >
-                                                        <Text
-                                                            style={[
-                                                                styles.genderButtonText,
-                                                                selectedGender === gender &&
-                                                                styles.selectedGenderText,
-                                                            ]}
-                                                        >
-                                                            {gender}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                        )}
-                                        {/* German Word Input */}
+                                        {/* UnderlineInput Component for Input */}
+                                        <UnderlineInput
+                                            value={germanWordInput}
+                                            onChangeText={setGermanWordInput}
+                                            length={currentWord.german.length}
+                                            editable={!isReview}
+                                            autoFocus
+                                        />
+
+                                        {/* Submit Button */}
                                         <View style={styles.germanWordForm}>
-                                            <TextInput
-                                                style={styles.germanWordInput}
-                                                value={germanWordInput}
-                                                onChangeText={(text) => setGermanWordInput(text)}
-                                                placeholder={`Type the German ${currentWord.type}`}
-                                                placeholderTextColor="#999"
-                                                editable={!isReview}
-                                            />
                                             <TouchableOpacity
                                                 onPress={handleSubmit}
                                                 style={[styles.submitButton]}
@@ -261,16 +348,13 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
                                     </>
                                 ) : (
                                     <>
-                                        <Text
-                                            style={[
-                                                styles.feedbackText,
-                                                feedbackClass === 'textSuccess'
-                                                    ? styles.textSuccess
-                                                    : styles.textError,
-                                            ]}
-                                        >
-                                            {feedback}
-                                        </Text>
+                                        {/* UnderlineInput Component for Feedback */}
+                                        <UnderlineInput
+                                            value={germanWordInput}
+                                            length={currentWord.german.length}
+                                            editable={false}
+                                            letterStatuses={letterStatuses}
+                                        />
                                         <TouchableOpacity
                                             onPress={handleSubmit}
                                             style={[styles.submitButton, styles.continueButton]}
@@ -289,6 +373,21 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
                         )}
                     </>
                 )}
+
+                {/* Custom Alert Modal */}
+                <CustomAlert
+                    visible={isCustomAlertVisible}
+                    title={alertOptions.title}
+                    message={alertOptions.message}
+                    onCancel={() => {
+                        alertOptions.onCancel();
+                        setIsCustomAlertVisible(false);
+                    }}
+                    onContinue={() => {
+                        alertOptions.onContinue();
+                        setIsCustomAlertVisible(false);
+                    }}
+                />
             </View>
         </SafeAreaView>
     );
@@ -305,41 +404,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingTop: 20,
     },
-    wordListContainer: {
-        maxHeight: 50,
-        marginBottom: 10,
-    },
-    wordListContent: {
+    pillsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 10,
+        flexWrap: 'nowrap',
     },
-    wordItem: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 8,
-        marginHorizontal: 5,
-        backgroundColor: colors.buttonBackgroundColor,
-    },
-    wordItemText: {
-        color: colors.textColor,
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    currentWordItem: {
-        borderColor: colors.highlightColor,
-        borderWidth: 2,
-    },
-    currentWordText: {
-        color: colors.highlightColor,
-    },
-    correctWordItem: {
-        backgroundColor: colors.successColor,
-    },
-    incorrectWordItem: {
-        backgroundColor: colors.errorColor,
-    },
-    statusText: {
-        color: '#fff',
-    },
+    // Since pill styles are dynamic, we define them inside the component
+
     mainContent: {
         alignItems: 'center',
         paddingVertical: 20,
@@ -370,8 +443,26 @@ const styles = StyleSheet.create({
     },
     selectedGenderButton: {
         borderColor: colors.highlightColor,
-        borderWidth: 1,
+        borderWidth: 2,
     },
+    correctBorder: {
+        borderColor: colors.successColor,
+        borderWidth: 2,
+    },
+    incorrectBorder: {
+        borderColor: colors.errorColor,
+        borderWidth: 2,
+    },
+    correctBackground: {
+        backgroundColor: colors.successColor,
+    },
+    incorrectBackground: {
+        backgroundColor: colors.errorColor,
+    },
+    whiteText: {
+        color: '#fff',
+    },
+
     genderButtonText: {
         fontSize: 18,
         color: '#fff',
@@ -384,19 +475,6 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         marginTop: 20,
-    },
-    germanWordInput: {
-        width: '80%',
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        paddingHorizontal: 10,
-        marginBottom: 20,
-        fontWeight: '500',
-        fontSize: 16,
-        color: '#fff',
-        backgroundColor: colors.inputBackgroundColor,
-        borderRadius: 8,
     },
     submitButton: {
         backgroundColor: colors.buttonBackgroundColor,
@@ -413,31 +491,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
-    feedbackText: {
-        fontSize: 22,
-        textAlign: 'center',
-        marginVertical: 8,
-    },
-    textSuccess: {
-        color: colors.successColor,
-    },
-    textError: {
-        color: colors.errorColor,
-    },
     roundText: {
         fontSize: 18,
         color: colors.textColor,
         marginBottom: 10,
-    },
-    placeholderContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginVertical: 10,
-    },
-    placeholderText: {
-        fontSize: 32,
-        color: '#999',
-        marginHorizontal: 5,
     },
 });
 
