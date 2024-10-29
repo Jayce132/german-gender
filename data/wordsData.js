@@ -1,72 +1,103 @@
-const wordsData = {
-    noun: [
-        { article: 'das', german: 'Jahr', english: 'year' },
-        { article: 'das', german: 'Mal', english: 'time' },
-        { article: 'das', german: 'Beispiel', english: 'example' },
-        { article: 'die', german: 'Zeit', english: 'time (hour)' },
-        { article: 'die', german: 'Frau', english: 'woman, wife, Mrs.' },
-        { article: 'der', german: 'Mensch', english: 'human being, man' },
-        { article: 'das', german: 'Deutsch', english: 'German' },
-        { article: 'das', german: 'Kind', english: 'child' },
-        { article: 'der', german: 'Tag', english: 'day' },
-        { article: 'der', german: 'Mann', english: 'man' },
-        { article: 'das', german: 'Land', english: 'land, country, state' },
-        { article: 'die', german: 'Frage', english: 'question' },
-        { article: 'das', german: 'Haus', english: 'house' },
-        { article: 'der', german: 'Fall', english: 'fall, case' },
-        { article: 'die', german: 'Leute', english: 'people' },
-    ],
-    verb: [
-        { german: 'sein', english: 'to be' },
-        { german: 'haben', english: 'to have' },
-        { german: 'werden', english: 'to become, get' },
-        { german: 'können', english: 'to be able to, can' },
-        { german: 'müssen', english: 'to have to, must' },
-        { german: 'sagen', english: 'to say' },
-        { german: 'machen', english: 'to do, make' },
-        { german: 'geben', english: 'to give' },
-        { german: 'kommen', english: 'to come' },
-        { german: 'sollen', english: 'should, ought to' },
-        { german: 'wollen', english: 'to want to' },
-        { german: 'gehen', english: 'to go' },
-        { german: 'wissen', english: 'to know' },
-        { german: 'sehen', english: 'to see' },
-        { german: 'lassen', english: 'to let, allow, have done' },
-    ],
-    adjective: [
-        { german: 'ganz', english: 'whole, all the' },
-        { german: 'groß', english: 'big, large, great' },
-        { german: 'gut', english: 'good' },
-        { german: 'neu', english: 'new' },
-        { german: 'erste', english: 'first' },
-        { german: 'lang', english: 'long' },
-        { german: 'deutsch', english: 'German' },
-        { german: 'klein', english: 'small, little' },
-        { german: 'alt', english: 'old' },
-        { german: 'hoch', english: 'high, tall' },
-        { german: 'einfach', english: 'simple, easy' },
-        { german: 'letzte', english: 'last' },
-        { german: 'gleich', english: 'same, right away, just' },
-        { german: 'möglich', english: 'possible' },
-        { german: 'eigen', english: 'own' },
-    ],
-    adverb: [
-        { german: 'auch', english: 'also, too' },
-        { german: 'so', english: 'so, thus, this way, such' },
-        { german: 'dann', english: 'then' },
-        { german: 'da', english: 'there' },
-        { german: 'noch', english: 'still, yet' },
-        { german: 'also', english: 'so' },
-        { german: 'nur', english: 'only' },
-        { german: 'schon', english: 'already' },
-        { german: 'mehr', english: 'more' },
-        { german: 'jetzt', english: 'now' },
-        { german: 'immer', english: 'always' },
-        { german: 'sehr', english: 'very' },
-        { german: 'hier', english: 'here' },
-        { german: 'doch', english: 'but, still' },
-        { german: 'wieder', english: 'again' },
-    ],
-};
-
-export default wordsData;
+export default [{
+    "english": "apple",
+    "german": "Apfel",
+    "article": "der",
+    "translation": "the apple",
+    "image": "https://images.pexels.com/photos/206959/pexels-photo-206959.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "car",
+    "german": "Auto",
+    "article": "das",
+    "translation": "the car",
+    "image": "https://images.pexels.com/photos/1592384/pexels-photo-1592384.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "tree",
+    "german": "Baum",
+    "article": "der",
+    "translation": "the tree",
+    "image": "https://images.pexels.com/photos/1459495/pexels-photo-1459495.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "house",
+    "german": "Haus",
+    "article": "das",
+    "translation": "the house",
+    "image": "https://images.pexels.com/photos/164558/pexels-photo-164558.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "flower",
+    "german": "Blume",
+    "article": "die",
+    "translation": "the flower",
+    "image": "https://images.pexels.com/photos/1242286/pexels-photo-1242286.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "bicycle",
+    "german": "Fahrrad",
+    "article": "das",
+    "translation": "the bicycle",
+    "image": "https://images.pexels.com/photos/20814059/pexels-photo-20814059/free-photo-of-minimal-pic.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "sun",
+    "german": "Sonne",
+    "article": "die",
+    "translation": "the sun",
+    "image": "https://images.pexels.com/photos/87611/sun-fireball-solar-flare-sunlight-87611.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "moon",
+    "german": "Mond",
+    "article": "der",
+    "translation": "the moon",
+    "image": "https://images.pexels.com/photos/47367/full-moon-moon-bright-sky-47367.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "star",
+    "german": "Stern",
+    "article": "der",
+    "translation": "the star",
+    "image": "https://images.pexels.com/photos/980859/pexels-photo-980859.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "water",
+    "german": "Wasser",
+    "article": "das",
+    "translation": "the water",
+    "image": "https://images.pexels.com/photos/261403/pexels-photo-261403.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "book",
+    "german": "Buch",
+    "article": "das",
+    "translation": "the book",
+    "image": "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "cat",
+    "german": "Katze",
+    "article": "die",
+    "translation": "the cat",
+    "image": "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "dog",
+    "german": "Hund",
+    "article": "der",
+    "translation": "the dog",
+    "image": "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "computer",
+    "german": "Computer",
+    "article": "der",
+    "translation": "the computer",
+    "image": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "phone",
+    "german": "Telefon",
+    "article": "das",
+    "translation": "the phone",
+    "image": "https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "pen",
+    "german": "Stift",
+    "article": "der",
+    "translation": "the pen",
+    "image": "https://images.pexels.com/photos/7054511/pexels-photo-7054511.jpeg?auto=compress&cs=tinysrgb&w=800"
+}, {
+    "english": "chair",
+    "german": "Stuhl",
+    "article": "der",
+    "translation": "the chair",
+    "image": "https://images.pexels.com/photos/116910/pexels-photo-116910.jpeg?auto=compress&cs=tinysrgb&w=800"
+}];
