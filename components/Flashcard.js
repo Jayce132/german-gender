@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 
@@ -41,6 +40,7 @@ const Flashcard = ({ item }) => {
                 {item.article ? 'the ' : ''}
                 {item.english}
             </Text>
+            <Text>Score: {item.score}</Text>
         </View>
     );
 };
