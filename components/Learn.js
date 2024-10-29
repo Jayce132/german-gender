@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, TextInput } from 'react-native';
 import wordsData from '../data/wordsData';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
+import { getWordScore } from '../utils/storage';
 
 const Learn = () => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [allWords, setAllWords] = useState([]);
 
-    const allWords = Object.entries(wordsData).flatMap(([type, words]) =>
-        words.map((word) => ({ ...word, type }))
-    );
+    useEffect(() => {
+        const loadWords = async () => {
+            // Flatten the wordsData and include type
+            const flatWords = Object.entries(wordsData).flatMap(([type, words]) =>
+                words.map(word => ({ ...word, type }))
+            );
+
+            // Fetch scores for each word and merge them
+            const wordsWithScores = await Promise.all(
+                flatWords.map(async word => {
+                    const score = await getWordScore(word.type, word.german);
+                    return { ...word, score };
+                })
+            );
+
+            setAllWords(wordsWithScores);
+        };
+
+        loadWords();
+    }, []);
 
     const filteredWords = allWords.filter(
-        (word) =>
+        word =>
             word.german.toLowerCase().includes(searchQuery.toLowerCase()) ||
             word.english.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -31,7 +50,7 @@ const Learn = () => {
             <FlatList
                 data={filteredWords}
                 renderItem={renderItem}
-                keyExtractor={(item) => `${item.german}-${item.english}`}
+                keyExtractor={item => `${item.german}-${item.english}`}
                 showsVerticalScrollIndicator={false}
             />
         </View>

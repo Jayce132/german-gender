@@ -12,6 +12,7 @@ import colors from '../styles/colors';
 import wordsData from '../data/wordsData';
 import Revision from './Revision';
 import CustomAlert from './CustomAlert';
+import { getWordScore, setWordScore } from '../utils/storage';
 import UnderlineInput from "./UnderlineInput";
 
 const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
@@ -62,20 +63,26 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
      * Initializes the practice session by selecting random words.
      */
     useEffect(() => {
-        const initializeWords = () => {
+        const initializeWords = async () => {
             // Retrieve the word list for the selected type
             const wordList = wordsData[wordType] || [];
 
-            // Map words and add necessary properties
-            const wordsWithProperties = wordList.map((word, index) => ({
-                ...word,
-                attemptStatus: 'unattempted',
-                id: `${word.english}-${index}-initial`, // Unique ID including round
-                type: wordType,
-            }));
+            // Fetch scores for each word and merge them
+            const wordsWithScores = await Promise.all(
+                wordList.map(async (word, index) => {
+                    const score = await getWordScore(wordType, word.german);
+                    return {
+                        ...word,
+                        score, // Preserve the score
+                        attemptStatus: 'unattempted',
+                        id: `${word.english}-${index}-initial`, // Unique ID including round
+                        type: wordType,
+                    };
+                })
+            );
 
             // Shuffle the words randomly
-            const shuffledWords = shuffleArray(wordsWithProperties);
+            const shuffledWords = shuffleArray(wordsWithScores);
 
             // Select the top `numWordsToPractice` words
             const selectedWords = shuffledWords.slice(0, numWordsToPractice);
@@ -91,7 +98,7 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
     /**
      * Handles the user's answer submission.
      */
-    const handleAnswerCheck = () => {
+    const handleAnswerCheck = async () => {
         let isCorrect = false;
 
         if (currentWord.type === 'noun') {
@@ -103,18 +110,32 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
                 germanWordInput.toLowerCase() === currentWord.german.toLowerCase();
         }
 
-        // Update attemptStatus for the current word
+        // Calculate new score with bounds [-4, 4] only in the first round
+        let newScore = currentWord.score;
+        if (isCorrect && practiceRound === 1) {
+            newScore = Math.min(currentWord.score + 1, 4);
+        } else if (!isCorrect && practiceRound === 1) {
+            newScore = Math.max(currentWord.score - 1, -4);
+        }
+
+        // Update attemptStatus and score for the current word only in first round
         const updatedWords = words.map((word, index) => {
             if (index === currentWordIndex) {
                 return {
                     ...word,
                     attemptStatus: isCorrect ? 'correct' : 'incorrect',
+                    score: practiceRound === 1 ? newScore : word.score, // Only update score in first round
                 };
             }
             return word;
         });
 
         setWords(updatedWords);
+
+        // Update the score in AsyncStorage only in first round
+        if (practiceRound === 1) {
+            await setWordScore(currentWord.type, currentWord.german, newScore);
+        }
 
         // Generate letterStatuses for feedback using UnderlineInput
         const correctAnswer = currentWord.german.toLowerCase();

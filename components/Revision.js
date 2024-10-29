@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import CustomAlert from './CustomAlert';
+import * as Speech from 'expo-speech'; // Import Speech module
 
 const Revision = ({ words, onReady }) => {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -39,6 +40,52 @@ const Revision = ({ words, onReady }) => {
     };
 
     const currentWord = words[currentWordIndex];
+
+    // Function to construct the text to be spoken
+    const constructSpeechText = (word) => {
+        if (word.article) {
+            // For nouns, include the article
+            return `${word.article} ${word.german}`;
+        }
+        // For other types (verbs, adjectives, etc.), just use the German word
+        return word.german;
+    };
+
+    // useEffect to trigger speech when currentWord changes
+    useEffect(() => {
+        if (currentWord && currentWord.german) {
+            console.log(`Speaking word: ${currentWord.german}`); // Debugging log
+
+            // Stop any ongoing speech before starting a new one
+            Speech.stop();
+
+            // Construct the text to be spoken
+            const textToSpeak = constructSpeechText(currentWord);
+
+            // Configure speech options
+            const options = {
+                language: 'de-DE', // German language
+                pitch: 1.0,
+                rate: 1.0,
+            };
+
+            // Speak the constructed text
+            Speech.speak(textToSpeak, options, (error) => {
+                if (error) {
+                    Alert.alert('Error', 'Failed to speak the word.');
+                    console.error('Speech.speak error:', error);
+                } else {
+                    console.log('Speech.speak initiated successfully.');
+                }
+            });
+        }
+
+        // Cleanup function to stop speech when component unmounts or before next word is spoken
+        return () => {
+            Speech.stop();
+        };
+    }, [currentWord]);
+
 
     return (
         <View style={styles.container}>
@@ -87,8 +134,7 @@ const Revision = ({ words, onReady }) => {
                     onPress={handleNext}
                     style={[styles.navButton, currentWordIndex === words.length - 1 && styles.hiddenButton]}
                     disabled={currentWordIndex === words.length - 1}>
-                    <Text
-                        style={styles.navButtonText}>Next</Text>
+                    <Text style={styles.navButtonText}>Next</Text>
                 </TouchableOpacity>
             </View>
 
