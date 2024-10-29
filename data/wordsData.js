@@ -1,103 +1,72 @@
-export default [{
-    "english": "apple",
-    "german": "Apfel",
-    "article": "der",
-    "translation": "the apple",
-    "image": "https://images.pexels.com/photos/206959/pexels-photo-206959.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "car",
-    "german": "Auto",
-    "article": "das",
-    "translation": "the car",
-    "image": "https://images.pexels.com/photos/1592384/pexels-photo-1592384.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "tree",
-    "german": "Baum",
-    "article": "der",
-    "translation": "the tree",
-    "image": "https://images.pexels.com/photos/1459495/pexels-photo-1459495.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "house",
-    "german": "Haus",
-    "article": "das",
-    "translation": "the house",
-    "image": "https://images.pexels.com/photos/164558/pexels-photo-164558.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "flower",
-    "german": "Blume",
-    "article": "die",
-    "translation": "the flower",
-    "image": "https://images.pexels.com/photos/1242286/pexels-photo-1242286.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "bicycle",
-    "german": "Fahrrad",
-    "article": "das",
-    "translation": "the bicycle",
-    "image": "https://images.pexels.com/photos/20814059/pexels-photo-20814059/free-photo-of-minimal-pic.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "sun",
-    "german": "Sonne",
-    "article": "die",
-    "translation": "the sun",
-    "image": "https://images.pexels.com/photos/87611/sun-fireball-solar-flare-sunlight-87611.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "moon",
-    "german": "Mond",
-    "article": "der",
-    "translation": "the moon",
-    "image": "https://images.pexels.com/photos/47367/full-moon-moon-bright-sky-47367.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "star",
-    "german": "Stern",
-    "article": "der",
-    "translation": "the star",
-    "image": "https://images.pexels.com/photos/980859/pexels-photo-980859.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "water",
-    "german": "Wasser",
-    "article": "das",
-    "translation": "the water",
-    "image": "https://images.pexels.com/photos/261403/pexels-photo-261403.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "book",
-    "german": "Buch",
-    "article": "das",
-    "translation": "the book",
-    "image": "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "cat",
-    "german": "Katze",
-    "article": "die",
-    "translation": "the cat",
-    "image": "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "dog",
-    "german": "Hund",
-    "article": "der",
-    "translation": "the dog",
-    "image": "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "computer",
-    "german": "Computer",
-    "article": "der",
-    "translation": "the computer",
-    "image": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "phone",
-    "german": "Telefon",
-    "article": "das",
-    "translation": "the phone",
-    "image": "https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "pen",
-    "german": "Stift",
-    "article": "der",
-    "translation": "the pen",
-    "image": "https://images.pexels.com/photos/7054511/pexels-photo-7054511.jpeg?auto=compress&cs=tinysrgb&w=800"
-}, {
-    "english": "chair",
-    "german": "Stuhl",
-    "article": "der",
-    "translation": "the chair",
-    "image": "https://images.pexels.com/photos/116910/pexels-photo-116910.jpeg?auto=compress&cs=tinysrgb&w=800"
-}];
+const wordsData = {
+    noun: [
+        {article: 'das', german: 'Jahr', english: 'year', score: 0},
+        {article: 'das', german: 'Mal', english: 'time', score: 0},
+        {article: 'das', german: 'Beispiel', english: 'example', score: 0},
+        {article: 'die', german: 'Zeit', english: 'time (hour)', score: 0},
+        {article: 'die', german: 'Frau', english: 'woman, wife, Mrs.', score: 0},
+        {article: 'der', german: 'Mensch', english: 'human being, man', score: 0},
+        {article: 'das', german: 'Deutsch', english: 'German', score: 0},
+        {article: 'das', german: 'Kind', english: 'child', score: 0},
+        {article: 'der', german: 'Tag', english: 'day', score: 0},
+        {article: 'der', german: 'Mann', english: 'man', score: 0},
+        {article: 'das', german: 'Land', english: 'land, country, state', score: 0},
+        {article: 'die', german: 'Frage', english: 'question', score: 0},
+        {article: 'das', german: 'Haus', english: 'house', score: 0},
+        {article: 'der', german: 'Fall', english: 'fall, case', score: 0},
+        {article: 'die', german: 'Leute', english: 'people', score: 0},
+    ],
+    verb: [
+        {german: 'sein', english: 'to be', score: 0},
+        {german: 'haben', english: 'to have', score: 0},
+        {german: 'werden', english: 'to become, get', score: 0},
+        {german: 'können', english: 'to be able to, can', score: 0},
+        {german: 'müssen', english: 'to have to, must', score: 0},
+        {german: 'sagen', english: 'to say', score: 0},
+        {german: 'machen', english: 'to do, make', score: 0},
+        {german: 'geben', english: 'to give', score: 0},
+        {german: 'kommen', english: 'to come', score: 0},
+        {german: 'sollen', english: 'should, ought to', score: 0},
+        {german: 'wollen', english: 'to want to', score: 0},
+        {german: 'gehen', english: 'to go', score: 0},
+        {german: 'wissen', english: 'to know', score: 0},
+        {german: 'sehen', english: 'to see', score: 0},
+        {german: 'lassen', english: 'to let, allow, have done', score: 0},
+    ],
+    adjective: [
+        {german: 'ganz', english: 'whole, all the', score: 0},
+        {german: 'groß', english: 'big, large, great', score: 0},
+        {german: 'gut', english: 'good', score: 0},
+        {german: 'neu', english: 'new', score: 0},
+        {german: 'erste', english: 'first', score: 0},
+        {german: 'lang', english: 'long', score: 0},
+        {german: 'deutsch', english: 'German', score: 0},
+        {german: 'klein', english: 'small, little', score: 0},
+        {german: 'alt', english: 'old', score: 0},
+        {german: 'hoch', english: 'high, tall', score: 0},
+        {german: 'einfach', english: 'simple, easy', score: 0},
+        {german: 'letzte', english: 'last', score: 0},
+        {german: 'gleich', english: 'same, right away, just', score: 0},
+        {german: 'möglich', english: 'possible', score: 0},
+        {german: 'eigen', english: 'own', score: 0},
+    ],
+    adverb: [
+        {german: 'auch', english: 'also, too', score: 0},
+        {german: 'so', english: 'so, thus, this way, such', score: 0},
+        {german: 'dann', english: 'then', score: 0},
+        {german: 'da', english: 'there', score: 0},
+        {german: 'noch', english: 'still, yet', score: 0},
+        {german: 'also', english: 'so', score: 0},
+        {german: 'nur', english: 'only', score: 0},
+        {german: 'schon', english: 'already', score: 0},
+        {german: 'mehr', english: 'more', score: 0},
+        {german: 'jetzt', english: 'now', score: 0},
+        {german: 'immer', english: 'always', score: 0},
+        {german: 'sehr', english: 'very', score: 0},
+        {german: 'hier', english: 'here', score: 0},
+        {german: 'doch', english: 'but, still', score: 0},
+        {german: 'wieder', english: 'again', score: 0},
+    ],
+};
+
+export default wordsData;
