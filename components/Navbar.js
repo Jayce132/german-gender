@@ -6,7 +6,7 @@ const Navbar = ({ setComponent }) => {
     return (
         <View style={styles.navbar}>
             <TouchableOpacity onPress={() => setComponent('Home')} style={styles.titleContainer}>
-                <Text style={styles.navbarTitle}>Learn German</Text>
+                <Text style={styles.navbarTitle}>Home</Text>
             </TouchableOpacity>
             <View style={styles.buttonContainer}>
                 <TouchableOpacity
