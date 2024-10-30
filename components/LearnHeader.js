@@ -73,12 +73,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     filterButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 20,
+        width: '23%', // Ensures each button takes up roughly equal space in a row of 4
+        paddingVertical: 10,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: 'gray',
         backgroundColor: colors.inputBackgroundColor,
+        alignItems: 'center',
     },
     activeFilterButton: {
         backgroundColor: colors.highlightColor,
