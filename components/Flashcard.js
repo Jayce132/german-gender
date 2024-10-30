@@ -54,6 +54,11 @@ const Flashcard = ({item}) => {
     const minFontSize = 20;
     const dynamicFontSize = Math.max(baseFontSize - german.length * 1.5, minFontSize);
 
+    // Dynamic vertical margin for German text (might need some editing after some tests)
+    const baseMarginVertical = 10;
+    const maxMarginVertical = 30;
+    const dynamicMarginVertical = Math.min(baseMarginVertical + german.length * 1.5, maxMarginVertical);
+
     return (
         <View style={styles.card}>
             {/* Card Content */}
@@ -65,7 +70,11 @@ const Flashcard = ({item}) => {
             <Text
                 style={[
                     styles.germanText,
-                    {color: getLabelColor(item.article, item.type), fontSize: dynamicFontSize},
+                    {
+                        color: getLabelColor(item.article, item.type),
+                        fontSize: dynamicFontSize,
+                        marginVertical: dynamicMarginVertical
+                    },
                 ]}
             >
                 {german}
@@ -125,7 +134,6 @@ const styles = StyleSheet.create({
     germanText: {
         textAlign: 'center',
         fontWeight: 'bold',
-        marginVertical: 14,
         // Font size is now dynamic
     },
     englishText: {
