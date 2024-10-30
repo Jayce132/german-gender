@@ -4,7 +4,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import colors from '../styles/colors';
 
 const Flashcard = ({item}) => {
-    const {score} = item;
+    const {score, german} = item;
 
     const MAX_SCORE = 4;
     const MIN_SCORE = -4;
@@ -49,6 +49,11 @@ const Flashcard = ({item}) => {
     // Determine the color of the progress bar based on the score
     const progressColor = score >= 0 ? colors.successColor : colors.errorColor;
 
+    // Dynamic font size for German text (might need some editing after some tests)
+    const baseFontSize = 60;
+    const minFontSize = 20;
+    const dynamicFontSize = Math.max(baseFontSize - german.length * 1.5, minFontSize);
+
     return (
         <View style={styles.card}>
             {/* Card Content */}
@@ -57,8 +62,13 @@ const Flashcard = ({item}) => {
                     ? item.article
                     : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
             </Text>
-            <Text style={[styles.germanText, {color: getLabelColor(item.article, item.type)}]}>
-                {item.german}
+            <Text
+                style={[
+                    styles.germanText,
+                    {color: getLabelColor(item.article, item.type), fontSize: dynamicFontSize},
+                ]}
+            >
+                {german}
             </Text>
             <Text style={styles.englishText}>
                 {item.article ? 'the ' : ''}
@@ -114,9 +124,9 @@ const styles = StyleSheet.create({
     },
     germanText: {
         textAlign: 'center',
-        fontSize: 60,
         fontWeight: 'bold',
-        // Color is now set dynamically
+        marginVertical: 14,
+        // Font size is now dynamic
     },
     englishText: {
         textAlign: 'right',

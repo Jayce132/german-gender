@@ -1,5 +1,6 @@
 const wordsData = {
     noun: [
+        {article: "die", german: "Informationstechnologie", english: "information technology", score: 0},
         {article: 'das', german: 'Jahr', english: 'year', score: 0},
         {article: 'das', german: 'Mal', english: 'time', score: 0},
         {article: 'das', german: 'Beispiel', english: 'example', score: 0},
