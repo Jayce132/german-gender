@@ -19,7 +19,10 @@ const App = () => {
                 barStyle="light-content"
                 backgroundColor={colors.backgroundColor}
             />
-            <Navbar setComponent={setSelectedComponent} />
+            {/* Conditionally render Navbar only if selectedComponent is not 'Learn' */}
+            {selectedComponent !== 'Learn' && (
+                <Navbar setComponent={setSelectedComponent} />
+            )}
             <View style={styles.mainContainer}>
                 {selectedComponent === 'Home' && (
                     <Home
@@ -28,7 +31,7 @@ const App = () => {
                         setWordType={setWordType}
                     />
                 )}
-                {selectedComponent === 'Learn' && <Learn />}
+                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
                 {selectedComponent === 'Practice' && (
                     <Practice
                         numWordsToPractice={numWordsToPractice}
@@ -49,7 +52,7 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
         backgroundColor: colors.backgroundColor,
-        paddingHorizontal: 10,
+        paddingHorizontal: 0,
     },
 });
 
