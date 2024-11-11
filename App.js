@@ -5,6 +5,7 @@ import {
 import Navbar from './components/Navbar';
 import Learn from './components/Learn';
 import Practice from './components/Practice';
+import SentenceBuilder from './components/SentenceBuilder';
 import colors from './styles/colors';
 import Home from './components/Home';
 
@@ -31,13 +32,16 @@ const App = () => {
                         setWordType={setWordType}
                     />
                 )}
-                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
+                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent} />}
                 {selectedComponent === 'Practice' && (
                     <Practice
                         numWordsToPractice={numWordsToPractice}
                         wordType={wordType}
                         setSelectedComponent={setSelectedComponent}
                     />
+                )}
+                {selectedComponent === 'SentenceBuilder' && (
+                    <SentenceBuilder setSelectedComponent={setSelectedComponent} />
                 )}
             </View>
         </SafeAreaView>
