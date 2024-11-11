@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     SafeAreaView,
     StatusBar,
@@ -12,10 +12,10 @@ import colors from '../styles/colors';
 import wordsData from '../data/wordsData';
 import Revision from './Revision';
 import CustomAlert from './CustomAlert';
-import { getWordScore, setWordScore } from '../utils/storage';
+import {getWordScore, setWordScore} from '../utils/storage';
 import UnderlineInput from "./UnderlineInput";
 
-const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
+const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [selectedGender, setSelectedGender] = useState('');
@@ -25,14 +25,17 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
     const [isReady, setIsReady] = useState(false);
     // Will be used for feedback with UnderlineInput, letter color based on correct or incorrect
     const [letterStatuses, setLetterStatuses] = useState([]);
+    const [streak, setStreak] = useState(0);
 
     // State for CustomAlert
     const [isCustomAlertVisible, setIsCustomAlertVisible] = useState(false);
     const [alertOptions, setAlertOptions] = useState({
         title: '',
         message: '',
-        onCancel: () => {},
-        onContinue: () => {},
+        onCancel: () => {
+        },
+        onContinue: () => {
+        },
     });
 
     // Calculate pill size based on screen width and number of words
@@ -116,6 +119,13 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
             newScore = Math.min(currentWord.score + 1, 4);
         } else if (!isCorrect && practiceRound === 1) {
             newScore = Math.max(currentWord.score - 1, -4);
+        }
+
+        // Update streak
+        if (isCorrect) {
+            setStreak(streak + 1);
+        } else {
+            setStreak(0);
         }
 
         // Update attemptStatus and score for the current word only in first round
@@ -217,6 +227,7 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
         setWords(resetWords);
         setCurrentWordIndex(0);
         setPracticeRound(practiceRound + 1);
+        setStreak(0);
 
         // Reset form states
         setSelectedGender('');
@@ -252,9 +263,25 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
         backgroundColor: colors.buttonBackgroundColor,
     };
 
+    const getStreakString = () => {
+        const streakColors = [colors.lowStreakColor, colors.mediumStreakColor, colors.highStreakColor];
+        const streakMessages = [' in a row!', ' in a row!!', ' in a row!!!'];
+        const thresholds = [0.33, 0.66, 1];
+
+        for (let i = 0; i < thresholds.length; i++) {
+            if (streak < Math.ceil((numWordsToPractice + 2) * thresholds[i])) {
+                return <Text style={[styles.streakText, {color: streakColors[i]}]}>
+                    {streak}{streakMessages[i]}
+                </Text>;
+            }
+        }
+        return null;
+    };
+
+
     return (
         <SafeAreaView style={styles.app}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor}/>
             <View style={styles.mainContainer}>
                 {!isReady ? (
                     <Revision
@@ -269,18 +296,23 @@ const Practice = ({ numWordsToPractice, wordType, setSelectedComponent }) => {
                                 const isCurrent = index === currentWordIndex;
                                 let pillStyles = [pillStyle];
                                 if (isCurrent) {
-                                    pillStyles.push({ backgroundColor: colors.highlightColor });
+                                    pillStyles.push({backgroundColor: colors.highlightColor});
                                 } else if (word.attemptStatus === 'correct') {
-                                    pillStyles.push({ backgroundColor: colors.successColor });
+                                    pillStyles.push({backgroundColor: colors.successColor});
                                 } else if (word.attemptStatus === 'incorrect') {
-                                    pillStyles.push({ backgroundColor: colors.errorColor });
+                                    pillStyles.push({backgroundColor: colors.errorColor});
                                 }
 
                                 return (
-                                    <View key={word.id} style={pillStyles} />
+                                    <View key={word.id} style={pillStyles}/>
                                 );
                             })}
                         </View>
+
+                        {/*Streak*/}
+                        {streak > 1 && <View>
+                            {getStreakString()}
+                        </View>}
 
                         {/* Main Content */}
                         {currentWord && (
@@ -516,6 +548,12 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: colors.textColor,
         marginBottom: 10,
+    },
+    streakText: {
+        fontSize: 18,
+        color: colors.successColor,
+        textAlign: 'center',
+        marginVertical: 10,
     },
 });
 
