@@ -7,6 +7,7 @@ export default {
     inputBackgroundColor: 'rgb(28,28,30)',
     textColor: 'rgba(255, 255, 255, 0.87)',
     dieColor: '#FF69B4',
+    nounColor: '#5FAD56',
     verbColor: '#E67E22',
     adjectiveColor: '#9B59B6',
     adverbColor: '#E74C3C',
