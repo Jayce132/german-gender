@@ -95,8 +95,7 @@ const SentenceBuilder = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Replace 'YOUR_API_KEY' with your actual API key
-                    Authorization: `Bearer YOUR_API_KEY`,
+                    Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPEN_AI_KEY}`,
                 },
                 body: JSON.stringify({
                     model: 'gpt-4o-mini',
@@ -166,7 +165,7 @@ Now, analyze the following sentence and provide the rule(s) that apply:
                 headers: {
                     'Content-Type': 'application/json',
                     // Use your actual API key here
-                    Authorization: `Bearer YOUR_API_KEY`,
+                    Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPEN_AI_KEY}`,
                 },
                 body: JSON.stringify({
                     model: 'gpt-4o-mini',
