@@ -38,11 +38,6 @@ const highlightSentence = (sentence, selectedWords) => {
         // Add the base word to the mapping
         wordForms[word.german.toLowerCase()] = { type, article: word.article || null };
 
-        // If the word is a noun, also add the article separately
-        if (type === 'noun' && word.article) {
-            wordForms[word.article.toLowerCase()] = { type: 'article', article: word.article };
-        }
-
         // Include all forms of the word
         if (word.forms) {
             word.forms.forEach((formObj) => {
@@ -52,29 +47,56 @@ const highlightSentence = (sentence, selectedWords) => {
         }
     }
 
+    const getNextWordToken = (tokens, currentIndex) => {
+        for (let i = currentIndex + 1; i < tokens.length; i++) {
+            const nextToken = tokens[i];
+            if (/\w/.test(nextToken)) {
+                return { token: nextToken, index: i };
+            }
+        }
+        return null;
+    };
+
+    let articleHighlighted = false;
+
     // Now, go through the tokens and wrap them with Text components
     return tokens.map((token, index) => {
         const trimmedToken = token.trim();
         const lowerToken = trimmedToken.toLowerCase();
-        const wordInfo = wordForms[lowerToken];
 
-        if (wordInfo && trimmedToken.length > 0) {
-            const { type, article } = wordInfo;
-            const color = getLabelColor(article, type);
+        let color = colors.textColor;
 
-            return (
-                <Text key={index} style={{ color }}>
-                    {token}
-                </Text>
-            );
-        } else {
-            // For spaces and punctuation, or tokens not in selected words, use default color
-            return (
-                <Text key={index} style={{ color: colors.textColor }}>
-                    {token}
-                </Text>
-            );
+        // Check if the token is a selected word or its form
+        if (wordForms[lowerToken] && trimmedToken.length > 0) {
+            const { type, article } = wordForms[lowerToken];
+            color = getLabelColor(article, type);
         }
+        // Check if the token is the article associated with the selected noun
+        else if (!articleHighlighted) {
+            for (const [type, word] of Object.entries(selectedWords)) {
+                if (type === 'noun' && word.article && word.article.toLowerCase() === lowerToken) {
+                    // Get the next word token (skip spaces/punctuation)
+                    const nextWord = getNextWordToken(tokens, index);
+                    if (nextWord) {
+                        const nextTokenTrimmed = nextWord.token.trim().toLowerCase();
+                        if (
+                            word.german.toLowerCase() === nextTokenTrimmed ||
+                            (word.forms && word.forms.some(formObj => formObj.form.toLowerCase() === nextTokenTrimmed))
+                        ) {
+                            color = getLabelColor(word.article, 'article');
+                            articleHighlighted = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return (
+            <Text key={index} style={{ color }}>
+                {token}
+            </Text>
+        );
     });
 };
 
