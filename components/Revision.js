@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import CustomAlert from './CustomAlert';
 import * as Speech from 'expo-speech'; // Import Speech module
+import highlightSentence from '../utils/highlightSentence'; // Import highlightSentence function
 
 const Revision = ({ words, onReady }) => {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -86,6 +87,19 @@ const Revision = ({ words, onReady }) => {
         };
     }, [currentWord]);
 
+    // Prepare selectedWords object for highlightSentence
+    const selectedWords = currentWord
+        ? { [currentWord.type]: currentWord }
+        : {};
+
+    // Generate highlighted sentences
+    const highlightedGermanSentence = currentWord?.sentence?.german
+        ? highlightSentence(currentWord.sentence.german, selectedWords)
+        : null;
+
+    const highlightedEnglishSentence = currentWord?.sentence?.english
+        ? highlightSentence(currentWord.sentence.english, selectedWords)
+        : null;
 
     return (
         <View style={styles.container}>
@@ -95,16 +109,14 @@ const Revision = ({ words, onReady }) => {
                 {/* German sentence with highlighted word */}
                 {currentWord && (
                     <Text style={styles.sentence}>
-                        Lorem ipsum <Text style={styles.highlight}>{currentWord.german}</Text> dolor sit amet,
-                        consectetur adipiscing elit.
+                        {highlightedGermanSentence}
                     </Text>
                 )}
 
                 {/* English sentence with highlighted word */}
                 {currentWord && (
                     <Text style={styles.sentence}>
-                        Lorem ipsum <Text style={styles.highlight}>{currentWord.english}</Text> dolor sit amet,
-                        consectetur adipiscing elit.
+                        {highlightedEnglishSentence}
                     </Text>
                 )}
 
