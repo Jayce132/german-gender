@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import colors from '../styles/colors';
 import wordsData from '../data/wordsData';
-import highlightSentence from "../data/highlightSentence";
+import highlightSentence from "../utils/highlightSentence";
 import * as Speech from 'expo-speech';
 
 const SentenceBuilder = () => {
