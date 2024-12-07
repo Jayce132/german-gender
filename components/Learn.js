@@ -29,7 +29,20 @@ const Learn = ({setComponent}) => {
                 })
             );
 
-            setAllWords(wordsWithScores);
+            // Filter out words with null score except the first one of each category
+            const firstNullScoreFound = {};
+            const filteredWords = wordsWithScores.filter(word => {
+                if (word.score === null) {
+                    if (!firstNullScoreFound[word.type]) {
+                        firstNullScoreFound[word.type] = true;
+                        return true;
+                    }
+                    return false;
+                }
+                return true;
+            });
+
+            setAllWords(filteredWords);
             setLoading(false);
         };
 
