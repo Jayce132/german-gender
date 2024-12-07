@@ -14,5 +14,7 @@ export default {
     adverbColor: '#E74C3C',
     lowStreakColor: '#5FAD56',
     mediumStreakColor: '#E67E22',
-    highStreakColor: '#E54B4B'
+    highStreakColor: '#E54B4B',
+    disabledCardBackgroundColor: '#333333',
+    disabledBadgeColor: '#555555',
 };

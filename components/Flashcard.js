@@ -1,109 +1,102 @@
-// components/Flashcard.js
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Flashcard = ({item}) => {
-    const {score, german} = item;
+const Flashcard = ({ item }) => {
+    const { score, german, article, type, english } = item;
 
     const MAX_SCORE = 4;
     const MIN_SCORE = -4;
+    const isScoreNull = score === null;
 
+    // Returns color based on article or type
     const getLabelColor = (article, type) => {
         if (article) {
-            switch (article.toLowerCase()) {
-                case 'der':
-                    return colors.highlightColor; // Light blue
-                case 'die':
-                    return colors.dieColor; // Hot pink
-                case 'das':
-                    return colors.successColor; // Green
-                default:
-                    return colors.textColor;
-            }
-        } else {
-            switch (type.toLowerCase()) {
-                case 'verb':
-                    return colors.verbColor; // Orange
-                case 'adjective':
-                    return colors.adjectiveColor; // Purple
-                case 'adverb':
-                    return colors.errorColor; // Red
-                default:
-                    return colors.textColor;
-            }
+            const colorMap = {
+                'der': colors.highlightColor,
+                'die': colors.dieColor,
+                'das': colors.successColor,
+            };
+            return colorMap[article.toLowerCase()] || colors.textColor;
         }
+
+        const typeColorMap = {
+            'verb': colors.verbColor,
+            'adjective': colors.adjectiveColor,
+            'adverb': colors.errorColor,
+        };
+        return typeColorMap[type.toLowerCase()] || colors.textColor;
     };
 
     // Calculate the progress percentage based on the score
     const getProgressPercentage = (score) => {
-        if (score >= 0) {
-            return (score / MAX_SCORE) * 100;
-        } else {
-            return (Math.abs(score) / Math.abs(MIN_SCORE)) * 100;
-        }
+        if (score >= 0) return (score / MAX_SCORE) * 100;
+        return (Math.abs(score) / Math.abs(MIN_SCORE)) * 100;
     };
 
-    const progressPercentage = getProgressPercentage(score);
-
-    // Determine the color of the progress bar based on the score
+    const progressPercentage = isScoreNull ? 0 : getProgressPercentage(score);
     const progressColor = score >= 0 ? colors.successColor : colors.errorColor;
 
-    // Dynamic font size for German text (might need some editing after some tests)
-    const baseFontSize = 60;
-    const minFontSize = 20;
-    const dynamicFontSize = Math.max(baseFontSize - german.length * 1.5, minFontSize);
-
-    // Dynamic vertical margin for German text (might need some editing after some tests)
-    const baseMarginVertical = 10;
-    const maxMarginVertical = 30;
-    const dynamicMarginVertical = Math.min(baseMarginVertical + german.length * 1.5, maxMarginVertical);
+    // Dynamic font size for German text
+    const dynamicFontSize = Math.max(60 - german.length * 1.5, 20);
+    const dynamicMarginVertical = Math.min(10 + german.length * 1.5, 30);
 
     return (
-        <View style={styles.card}>
-            {/* Card Content */}
-            <Text style={[styles.labelText, {color: getLabelColor(item.article, item.type)}]}>
-                {item.article
-                    ? item.article
-                    : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+        <View
+            style={[
+                styles.card,
+                { backgroundColor: isScoreNull ? colors.disabledCardBackgroundColor : colors.cardBackgroundColor },
+            ]}
+        >
+            {isScoreNull && (
+                <View style={styles.lockOverlay}>
+                    <Icon name="lock" size={150} color={colors.textColor} />
+                </View>
+            )}
+
+            <Text style={[styles.labelText, { color: getLabelColor(article, type) }]}>
+                {article || type.charAt(0).toUpperCase() + type.slice(1)}
             </Text>
             <Text
                 style={[
                     styles.germanText,
                     {
-                        color: getLabelColor(item.article, item.type),
+                        color: getLabelColor(article, type),
                         fontSize: dynamicFontSize,
-                        marginVertical: dynamicMarginVertical
+                        marginVertical: dynamicMarginVertical,
                     },
                 ]}
             >
                 {german}
             </Text>
             <Text style={styles.englishText}>
-                {item.article ? 'the ' : ''}
-                {item.english}
+                {article ? 'the ' : ''}{english}
             </Text>
 
-            {/* Progress Bar and Badge Container */}
-            <View style={styles.progressContainer}>
-                {/* Progress Badge */}
-                <View style={[styles.progressBadge, {backgroundColor: progressColor}]}>
-                    <Text style={styles.progressBadgeText}>{score}</Text>
-                </View>
-                {/* Progress Bar Container */}
-                <View style={styles.progressBarContainer}>
-                    <View
-                        style={[
-                            styles.progressBarFill,
-                            {
-                                width: `${progressPercentage}%`,
-                                backgroundColor: progressColor,
-                                left: score >= 0 ? 0 : null,
-                                right: score < 0 ? 0 : null,
-                            },
-                        ]}
-                    />
-                </View>
+            <View style={[styles.progressContainer, isScoreNull && { justifyContent: 'center' }]}>
+                {isScoreNull ? (
+                    <Text style={styles.unlockText}>Full score on a word needed to unlock</Text>
+                ) : (
+                    <>
+                        <View style={[styles.progressBadge, { backgroundColor: progressColor }]}>
+                            <Text style={styles.progressBadgeText}>{score}</Text>
+                        </View>
+                        <View style={styles.progressBarContainer}>
+                            <View
+                                style={[
+                                    styles.progressBarFill,
+                                    {
+                                        width: `${progressPercentage}%`,
+                                        backgroundColor: progressColor,
+                                        left: score >= 0 ? 0 : null,
+                                        right: score < 0 ? 0 : null,
+                                    },
+                                ]}
+                            />
+                        </View>
+                    </>
+                )}
             </View>
         </View>
     );
@@ -118,23 +111,22 @@ const styles = StyleSheet.create({
         padding: 20,
         // Shadows (iOS)
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.8,
         shadowRadius: 2,
         // Elevation (Android)
         elevation: 5,
         position: 'relative',
+        overflow: 'hidden',
     },
     labelText: {
         textAlign: 'left',
         fontSize: 30,
         fontWeight: '400',
-        // Color is now set dynamically
     },
     germanText: {
         textAlign: 'center',
         fontWeight: 'bold',
-        // Font size is now dynamic
     },
     englishText: {
         textAlign: 'right',
@@ -170,6 +162,19 @@ const styles = StyleSheet.create({
         position: 'absolute',
         height: '100%',
         width: '0%',
+    },
+    lockOverlay: {
+        position: 'absolute',
+        top: '50%',
+        left: '60%',
+        transform: [{ translateX: -60 }, { translateY: -60 }],
+        opacity: 0.5,
+        zIndex: 1,
+    },
+    unlockText: {
+        fontSize: 16,
+        textAlign: 'center',
+        color: colors.textColor,
     },
 });
 
