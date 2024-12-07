@@ -15,7 +15,7 @@ export const getWordScore = async (type, german) => {
         if (scoreStr !== null) {
             return parseInt(scoreStr, 10);
         }
-        return 0; // Default score if not set
+        return null; // Default score null if not set, this means that the word is locked.
     } catch (error) {
         console.error('Error getting word score:', error);
         return 0;
