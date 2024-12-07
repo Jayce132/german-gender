@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import colors from '../styles/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Flashcard = ({ item }) => {
-    const { score, german, article, type, english } = item;
+const Flashcard = ({item, firstLocked}) => {
+    const {score, german, article, type, english} = item;
 
     const MAX_SCORE = 4;
     const MIN_SCORE = -4;
@@ -46,16 +46,16 @@ const Flashcard = ({ item }) => {
         <View
             style={[
                 styles.card,
-                { backgroundColor: isScoreNull ? colors.disabledCardBackgroundColor : colors.cardBackgroundColor },
+                {backgroundColor: isScoreNull ? colors.disabledCardBackgroundColor : colors.cardBackgroundColor},
             ]}
         >
             {isScoreNull && (
                 <View style={styles.lockOverlay}>
-                    <Icon name="lock" size={150} color={colors.textColor} />
+                    <Icon name="lock" size={150} color={colors.textColor}/>
                 </View>
             )}
 
-            <Text style={[styles.labelText, { color: getLabelColor(article, type) }]}>
+            <Text style={[styles.labelText, {color: getLabelColor(article, type)}]}>
                 {article || type.charAt(0).toUpperCase() + type.slice(1)}
             </Text>
             <Text
@@ -74,12 +74,14 @@ const Flashcard = ({ item }) => {
                 {article ? 'the ' : ''}{english}
             </Text>
 
-            <View style={[styles.progressContainer, isScoreNull && { justifyContent: 'center' }]}>
+            <View style={[styles.progressContainer, isScoreNull && {justifyContent: 'center'}]}>
                 {isScoreNull ? (
-                    <Text style={styles.unlockText}>Full score on a word needed to unlock</Text>
+                    firstLocked && (
+                        <Text style={styles.unlockText}>Full score on a word needed to unlock</Text>
+                    )
                 ) : (
                     <>
-                        <View style={[styles.progressBadge, { backgroundColor: progressColor }]}>
+                        <View style={[styles.progressBadge, {backgroundColor: progressColor}]}>
                             <Text style={styles.progressBadgeText}>{score}</Text>
                         </View>
                         <View style={styles.progressBarContainer}>
@@ -111,7 +113,7 @@ const styles = StyleSheet.create({
         padding: 20,
         // Shadows (iOS)
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.8,
         shadowRadius: 2,
         // Elevation (Android)
@@ -167,7 +169,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: '50%',
         left: '60%',
-        transform: [{ translateX: -60 }, { translateY: -60 }],
+        transform: [{translateX: -60}, {translateY: -60}],
         opacity: 0.5,
         zIndex: 1,
     },
