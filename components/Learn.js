@@ -36,13 +36,25 @@ const Learn = ({setComponent}) => {
         loadWords();
     }, []);
 
+    // Filter words based on type and search query
     const filteredWords = allWords.filter(word =>
         (selectedType === null || word.type === selectedType) &&
         (word.german.toLowerCase().includes(searchQuery.toLowerCase()) ||
             word.english.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
-    const renderItem = ({item}) => <Flashcard item={item}/>;
+    // Find the first locked word for each type
+    const firstLockedByType = {};
+    filteredWords.forEach((word, index) => {
+        if (word.score === null && !(word.type in firstLockedByType)) {
+            firstLockedByType[word.type] = index;
+        }
+    });
+
+    // Render flashcards with the `firstLocked` prop
+    const renderItem = ({item, index}) => (
+        <Flashcard item={item} firstLocked={firstLockedByType[item.type] === index} />
+    );
 
     return (
         <View style={styles.container}>
@@ -54,12 +66,12 @@ const Learn = ({setComponent}) => {
                 setComponent={setComponent}
             />
             {loading ? (
-                <ActivityIndicator size="large" color={colors.highlightColor} style={styles.loadingIndicator}/>
+                <ActivityIndicator size="large" color={colors.highlightColor} style={styles.loadingIndicator} />
             ) : (
                 <FlatList
                     data={filteredWords}
                     renderItem={renderItem}
-                    keyExtractor={item => `${item.german}-${item.english}`}
+                    keyExtractor={item => `${item.type}-${item.german}-${item.english}`}
                     showsVerticalScrollIndicator={false}
                 />
             )}
