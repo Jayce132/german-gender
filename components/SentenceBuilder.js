@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import colors from '../styles/colors';
-import wordsData from '../data/wordsData';
 import highlightSentence from "../utils/highlightSentence";
 import * as Speech from 'expo-speech';
+import {getAllWords} from "../firebase/getAllWords";
 
 const SentenceBuilder = () => {
     const [selectedWordTypes, setSelectedWordTypes] = useState([]);
@@ -13,8 +13,17 @@ const SentenceBuilder = () => {
     const [explanation, setExplanation] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [highlightedSentence, setHighlightedSentence] = useState([]); // State for highlighted German sentence
+    const [wordsData, setWordsData] = useState({ noun: [], verb: [], adjective: [], adverb: [] });
 
     const wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
+
+    useEffect(() => {
+        const fetchWords = async () => {
+            setWordsData( await getAllWords());
+        }
+
+        fetchWords()
+    }, []);
 
     // Automatically determine difficulty level based on number of word types selected
     const getDifficultyLevel = () => {
