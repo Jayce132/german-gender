@@ -1,36 +1,36 @@
-import React, {useState, useEffect} from 'react';
-import {View, FlatList, StyleSheet, ActivityIndicator} from 'react-native';
-import wordsData from '../data/wordsData';
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { getAllWords } from '../firebase/getAllWords';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import LearnHeader from './LearnHeader';
-import {getWordScore} from '../utils/storage';
 
-const Learn = ({setComponent}) => {
+const Learn = ({ setComponent }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [allWords, setAllWords] = useState([]);
     const [selectedType, setSelectedType] = useState('noun');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); // Optional: For error handling
 
     useEffect(() => {
         const loadWords = async () => {
             setLoading(true);
+            setError(null); // Reset error state before fetching
+            try {
+                const wordsByType = await getAllWords();
 
-            // Flatten the wordsData and include type
-            const flatWords = Object.entries(wordsData).flatMap(([type, words]) =>
-                words.map(word => ({...word, type}))
-            );
+                // Flatten the wordsByType object into a single array
+                const flatWords = Object.entries(wordsByType).flatMap(([type, words]) =>
+                    words.map(word => ({ ...word, type }))
+                );
 
-            // Fetch scores for each word and merge them
-            const wordsWithScores = await Promise.all(
-                flatWords.map(async word => {
-                    const score = await getWordScore(word.type, word.german);
-                    return {...word, score};
-                })
-            );
-
-            setAllWords(wordsWithScores);
-            setLoading(false);
+                setAllWords(flatWords);
+            } catch (error) {
+                console.error('Failed to load words:', error);
+                setError('Failed to load words. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
         };
 
         loadWords();
@@ -52,9 +52,25 @@ const Learn = ({setComponent}) => {
     });
 
     // Render flashcards with the `firstLocked` prop
-    const renderItem = ({item, index}) => (
+    const renderItem = ({ item, index }) => (
         <Flashcard item={item} firstLocked={firstLockedByType[item.type] === index} />
     );
+
+    // Optional: Display an error message if fetching fails
+    if (error) {
+        return (
+            <View style={styles.container}>
+                <LearnHeader
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    selectedType={selectedType}
+                    setSelectedType={setSelectedType}
+                    setComponent={setComponent}
+                />
+                <Text style={styles.errorText}>{error}</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -71,7 +87,7 @@ const Learn = ({setComponent}) => {
                 <FlatList
                     data={filteredWords}
                     renderItem={renderItem}
-                    keyExtractor={item => `${item.type}-${item.german}-${item.english}`}
+                    keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
                 />
             )}
@@ -87,6 +103,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     loadingIndicator: {
+        marginTop: 20,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 16,
+        textAlign: 'center',
         marginTop: 20,
     },
 });
