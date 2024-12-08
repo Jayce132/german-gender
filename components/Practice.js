@@ -9,11 +9,11 @@ import {
     Dimensions,
 } from 'react-native';
 import colors from '../styles/colors';
-import wordsData from '../data/wordsData';
 import Revision from './Revision';
 import CustomAlert from './CustomAlert';
-import {getWordScore, setWordScore} from '../utils/storage';
 import UnderlineInput from "./UnderlineInput";
+import {getAllWords} from "../firebase/getAllWords";
+import {updateWordScore} from "../firebase/updateWordScore";
 
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
     const [words, setWords] = useState([]);
@@ -67,37 +67,40 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
      */
     useEffect(() => {
         const initializeWords = async () => {
-            // Retrieve the word list for the selected type
-            const wordList = wordsData[wordType] || [];
+            try {
+                // Retrieve all words grouped by type from Firestore
+                const allWords = await getAllWords();
 
-            // Fetch scores for each word and merge them
-            const wordsWithScores = await Promise.all(
-                wordList.map(async (word, index) => {
-                    const score = await getWordScore(wordType, word.german);
-                    return {
-                        ...word,
-                        score, // Preserve the score
-                        attemptStatus: 'unattempted',
-                        id: `${word.english}-${index}-initial`, // Unique ID including round
-                        type: wordType,
-                    };
-                })
-            );
+                // Extract the word list for the selected type
+                const wordList = allWords[wordType] || [];
 
-            // Shuffle the words randomly
-            const shuffledWords = shuffleArray(wordsWithScores);
+                // Adds a status property to each word that is only used in this component
+                const wordsWithStatus = await Promise.all(
+                    wordList.map(async (word, index) => {
+                        return {
+                            ...word,
+                            attemptStatus: 'unattempted',
+                        };
+                    })
+                );
 
-            // Select the top `numWordsToPractice` words
-            const selectedWords = shuffledWords.slice(0, numWordsToPractice);
+                // Shuffle the words randomly
+                const shuffledWords = shuffleArray(wordsWithStatus);
 
-            setWords(selectedWords);
+                // Select the top `numWordsToPractice` words
+                const selectedWords = shuffledWords.slice(0, numWordsToPractice);
+
+                // Update the state with the selected words
+                setWords(selectedWords);
+            } catch (error) {
+                console.error("Error initializing words:", error);
+            }
         };
 
         initializeWords();
     }, [numWordsToPractice, wordType]);
 
     const currentWord = words[currentWordIndex];
-
     /**
      * Handles the user's answer submission.
      */
@@ -142,9 +145,13 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
 
         setWords(updatedWords);
 
-        // Update the score in AsyncStorage only in first round
+        // Update the score in Firestore using the custom ID only in the first round
         if (practiceRound === 1) {
-            await setWordScore(currentWord.type, currentWord.german, newScore);
+            try {
+                await updateWordScore(currentWord.id, newScore); // Use the custom ID
+            } catch (error) {
+                console.error("Failed to update word score in Firestore:", error);
+            }
         }
 
         // Generate letterStatuses for feedback using UnderlineInput
