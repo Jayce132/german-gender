@@ -12,8 +12,9 @@ import colors from '../styles/colors';
 import Revision from './Revision';
 import CustomAlert from './CustomAlert';
 import UnderlineInput from "./UnderlineInput";
-import {getAllWords} from "../firebase/getAllWords";
 import {updateWordScore} from "../firebase/updateWordScore";
+import {getUnlockedWords} from "../firebase/getUnlockedWords";
+import {unlockNextWord} from "../firebase/unlockNextWord";
 
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
     const [words, setWords] = useState([]);
@@ -68,8 +69,8 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
     useEffect(() => {
         const initializeWords = async () => {
             try {
-                // Retrieve all words grouped by type from Firestore
-                const allWords = await getAllWords();
+                // Retrieve only unlocked words grouped by type from Firestore
+                const allWords = await getUnlockedWords();
 
                 // Extract the word list for the selected type
                 const wordList = allWords[wordType] || [];
@@ -149,6 +150,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
         if (practiceRound === 1) {
             try {
                 await updateWordScore(currentWord.id, newScore); // Use the custom ID
+                if (newScore === 4) {
+                    await unlockNextWord(currentWord.id, currentWord.type);
+                }
             } catch (error) {
                 console.error("Failed to update word score in Firestore:", error);
             }
