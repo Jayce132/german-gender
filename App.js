@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     SafeAreaView, StatusBar, StyleSheet, View,
 } from 'react-native';
@@ -8,11 +8,24 @@ import Practice from './components/Practice';
 import SentenceBuilder from './components/SentenceBuilder';
 import colors from './styles/colors';
 import Home from './components/Home';
+import {
+    initializeUnlockedWords,
+    synchronizeUnlockedWords,
+} from "./firebase/getUnlockedWords";
 
 const App = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
     const [numWordsToPractice, setNumWordsToPractice] = useState(5); // Default number of words
     const [wordType, setWordType] = useState('noun'); // Default word type
+
+    useEffect(() => {
+        const initialize = async () => {
+            await initializeUnlockedWords();
+            synchronizeUnlockedWords()
+        };
+
+        initialize();
+    }, []);
 
     return (
         <SafeAreaView style={styles.app}>
@@ -22,7 +35,7 @@ const App = () => {
             />
             {/* Conditionally render Navbar only if selectedComponent is not 'Learn' */}
             {selectedComponent !== 'Learn' && (
-                <Navbar setComponent={setSelectedComponent} />
+                <Navbar setComponent={setSelectedComponent}/>
             )}
             <View style={styles.mainContainer}>
                 {selectedComponent === 'Home' && (
@@ -32,7 +45,7 @@ const App = () => {
                         setWordType={setWordType}
                     />
                 )}
-                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent} />}
+                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
                 {selectedComponent === 'Practice' && (
                     <Practice
                         numWordsToPractice={numWordsToPractice}
@@ -41,7 +54,7 @@ const App = () => {
                     />
                 )}
                 {selectedComponent === 'SentenceBuilder' && (
-                    <SentenceBuilder setSelectedComponent={setSelectedComponent} />
+                    <SentenceBuilder setSelectedComponent={setSelectedComponent}/>
                 )}
             </View>
         </SafeAreaView>
