@@ -95,15 +95,12 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                 setWords(selectedWords);
 
                 // Initialize stats for the selected words
-                console.log("init Stats:");
-                console.log(stats);
                 if (!stats) {
                     const initialStats = {};
                     selectedWords.forEach((word) => {
                         initialStats[word.german] = {
                             initialScore: word.score,
                             newScore: word.score,
-                            completed: word.completed,
                             newUnlock: false,
                         };
                     });
@@ -146,7 +143,6 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
             [currentWord.german]: {
                 initialScore: currentWord.score,
                 newScore: newScore,
-                completed: newScore === 4,
                 newUnlock: false,
             },
         }));
@@ -179,18 +175,14 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                 if (newScore === 4) {
                     const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
                     if (unlockedWord) {
-                        console.log("Unlocked word:");
-                        console.log(stats);
                         setStats((prevStats) => ({
                             ...prevStats,
                             [unlockedWord.german]: {
                                 initialScore: unlockedWord.score,
                                 newScore: unlockedWord.score,
-                                completed: false,
                                 newUnlock: true,
                             },
                         }));
-                        console.log(stats);
                     }
                 }
             } catch (error) {

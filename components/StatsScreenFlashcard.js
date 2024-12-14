@@ -22,7 +22,7 @@ const StatsScreenFlashcard = ({word, initialScore, newScore, newUnlock, complete
                         {scoreDifference > 0 ? `+${scoreDifference}` : scoreDifference}
                     </Text>
                 }
-                {completed && <Icon name="trophy" size={24} color={colors.successColor} />}
+                {newScore === 4 && <Icon name="trophy" size={24} color={colors.successColor} />}
                 {newUnlock && <Icon name="unlock" size={24} color={colors.textColor} />}
             </View>
         </View>
