@@ -22,7 +22,7 @@ const App = () => {
     // the stats component will act as a stop before navigating to the next component
     const [componentAfterStats, setComponentAfterStats] = useState('Home');
     // used to pass the changes in word ratings from the Practice component to the StatsScreen component
-    const [stats, setStats] = useState({});
+    const [stats, setStats] = useState(null);
 
     useEffect(() => {
         const initialize = async () => {
@@ -73,6 +73,7 @@ const App = () => {
                         setSelectedComponent={setSelectedComponent}
                         componentAfterStats={componentAfterStats}
                         stats={stats}
+                        setStats={setStats}
                     />
                 )}
             </View>

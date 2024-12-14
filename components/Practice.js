@@ -95,16 +95,20 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                 setWords(selectedWords);
 
                 // Initialize stats for the selected words
-                const initialStats = {};
-                selectedWords.forEach((word) => {
-                    initialStats[word.german] = {
-                        initialScore: word.score,
-                        newScore: word.score,
-                        completed: word.completed,
-                        newUnlock: false,
-                    };
-                });
-                setStats(initialStats);
+                console.log("init Stats:");
+                console.log(stats);
+                if (!stats) {
+                    const initialStats = {};
+                    selectedWords.forEach((word) => {
+                        initialStats[word.german] = {
+                            initialScore: word.score,
+                            newScore: word.score,
+                            completed: word.completed,
+                            newUnlock: false,
+                        };
+                    });
+                    setStats(initialStats);
+                }
             } catch (error) {
                 console.error("Error initializing words:", error);
             }
@@ -137,12 +141,11 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
             newScore = Math.max(currentWord.score - 1, -4);
         }
 
-        // Update stats for the current word
         setStats((prevStats) => ({
             ...prevStats,
             [currentWord.german]: {
                 initialScore: currentWord.score,
-                newScore,
+                newScore: newScore,
                 completed: newScore === 4,
                 newUnlock: false,
             },
@@ -174,10 +177,21 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
             try {
                 await updateWordScore(currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
-                    await unlockNextWord(currentWord.id, currentWord.type);
-                    setStats(() => ({
-                        ...stats
-                    }));
+                    const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
+                    if (unlockedWord) {
+                        console.log("Unlocked word:");
+                        console.log(stats);
+                        setStats((prevStats) => ({
+                            ...prevStats,
+                            [unlockedWord.german]: {
+                                initialScore: unlockedWord.score,
+                                newScore: unlockedWord.score,
+                                completed: false,
+                                newUnlock: true,
+                            },
+                        }));
+                        console.log(stats);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to update word score in Firestore:", error);
