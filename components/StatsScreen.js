@@ -20,7 +20,6 @@ const StatsScreen = ({setSelectedComponent, componentAfterStats, stats, setStats
             </View>
 
             <ScrollView style={styles.scrollContainer}>
-                {console.log(stats)}
                 {Object.entries(stats).map(([key, stat], index) => (
                     <StatsScreenFlashcard
                         key={index}
