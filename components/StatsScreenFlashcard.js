@@ -13,16 +13,20 @@ const StatsScreenFlashcard = ({word, initialScore, newScore, newUnlock, complete
             ? colors.negativeScoreChangeColor
             : colors.neutralScoreChangeColor;
 
+    const isCompletedWord = (score) => {
+        return score === 4;
+    }
+
     return (
         <View style={styles.cardContainer}>
             <View style={styles.row}>
                 <Text style={styles.word}>{word}</Text>
-                {!newUnlock && !completed &&
+                {!newUnlock && !isCompletedWord(newScore) &&
                     <Text style={[styles.score, {color: scoreColor}]}>
                         {scoreDifference > 0 ? `+${scoreDifference}` : scoreDifference}
                     </Text>
                 }
-                {newScore === 4 && <Icon name="trophy" size={24} color={colors.successColor} />}
+                {isCompletedWord(newScore) && <Icon name="trophy" size={24} color={colors.successColor} />}
                 {newUnlock && <Icon name="unlock" size={24} color={colors.textColor} />}
             </View>
         </View>
