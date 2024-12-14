@@ -3,8 +3,9 @@ import {Text, View, TouchableOpacity, StyleSheet, ScrollView} from 'react-native
 import StatsScreenFlashcard from './StatsScreenFlashcard'; // Import the new component
 import colors from '../styles/colors';
 
-const StatsScreen = ({setSelectedComponent, componentAfterStats, stats}) => {
+const StatsScreen = ({setSelectedComponent, componentAfterStats, stats, setStats}) => {
     const handleContinue = () => {
+        setStats(null);
         setSelectedComponent(componentAfterStats);
     };
 
@@ -19,6 +20,7 @@ const StatsScreen = ({setSelectedComponent, componentAfterStats, stats}) => {
             </View>
 
             <ScrollView style={styles.scrollContainer}>
+                {console.log(stats)}
                 {Object.entries(stats).map(([key, stat], index) => (
                     <StatsScreenFlashcard
                         key={index}
