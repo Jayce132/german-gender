@@ -4,9 +4,10 @@ import colors from '../styles/colors';
 
 const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
     const [selectedType, setSelectedType] = useState('noun');
+    const maximumWordsInPractice = 10;
 
-    const handleSelectNumWords = (numWords) => {
-        setNumWordsToPractice(numWords);
+    const handleStartPractice = () => {
+        setNumWordsToPractice(maximumWordsInPractice);
         setWordType(selectedType);
         setSelectedComponent('Practice');
     };
@@ -39,28 +40,12 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
                 ))}
             </View>
 
-            <Text style={styles.title}>to practice:</Text>
-
-            <View style={styles.numberContainer}>
-                <TouchableOpacity
-                    style={styles.numberButton}
-                    onPress={() => handleSelectNumWords(5)}
-                >
-                    <Text style={styles.numberButtonText}>5</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.numberButton}
-                    onPress={() => handleSelectNumWords(10)}
-                >
-                    <Text style={styles.numberButtonText}>10</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.numberButton}
-                    onPress={() => handleSelectNumWords(15)}
-                >
-                    <Text style={styles.numberButtonText}>15</Text>
-                </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+                style={styles.PracticeButton}
+                onPress={() => handleStartPractice()}
+            >
+                <Text style={styles.PracticeButtonText}>Start practice</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -100,20 +85,16 @@ const styles = StyleSheet.create({
         color: '#242424',
         fontWeight: 'bold',
     },
-    numberContainer: {
-        flexDirection: 'row',
-        marginVertical: 20,
-    },
-    numberButton: {
+    PracticeButton: {
         backgroundColor: colors.buttonBackgroundColor,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
         borderRadius: 8,
-        marginHorizontal: 5,
+        marginVertical: 30,
     },
-    numberButtonText: {
+    PracticeButtonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 20,
     },
 });
 
