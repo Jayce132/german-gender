@@ -12,11 +12,15 @@ import {
     initializeUnlockedWords,
     synchronizeUnlockedWords,
 } from "./firebase/getUnlockedWords";
+import StatsScreen from "./components/StatsScreen";
 
 const App = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
     const [numWordsToPractice, setNumWordsToPractice] = useState(5); // Default number of words
     const [wordType, setWordType] = useState('noun'); // Default word type
+    // this state is used to determine which component to navigate to after the StatsScreen
+    // the stats component will act as a stop before navigating to the next component
+    const [componentAfterStats, setComponentAfterStats] = useState('Home');
 
     useEffect(() => {
         const initialize = async () => {
@@ -35,7 +39,11 @@ const App = () => {
             />
             {/* Conditionally render Navbar only if selectedComponent is not 'Learn' */}
             {selectedComponent !== 'Learn' && (
-                <Navbar setComponent={setSelectedComponent}/>
+                <Navbar
+                    setComponent={setSelectedComponent}
+                    selectedComponent={selectedComponent}
+                    setComponentAfterStats={setComponentAfterStats}
+                />
             )}
             <View style={styles.mainContainer}>
                 {selectedComponent === 'Home' && (
@@ -55,6 +63,12 @@ const App = () => {
                 )}
                 {selectedComponent === 'SentenceBuilder' && (
                     <SentenceBuilder setSelectedComponent={setSelectedComponent}/>
+                )}
+                {selectedComponent === 'StatsScreen' && (
+                    <StatsScreen
+                        setSelectedComponent={setSelectedComponent}
+                        componentAfterStats={componentAfterStats}
+                    />
                 )}
             </View>
         </SafeAreaView>
