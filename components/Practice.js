@@ -16,7 +16,7 @@ import {updateWordScore} from "../firebase/updateWordScore";
 import {getUnlockedWords} from "../firebase/getUnlockedWords";
 import {unlockNextWord} from "../firebase/unlockNextWord";
 
-const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
+const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, setStats}) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [selectedGender, setSelectedGender] = useState('');
@@ -97,9 +97,11 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
                 // Initialize stats for the selected words
                 const initialStats = {};
                 selectedWords.forEach((word) => {
-                    initialStats[word.english] = {
+                    initialStats[word.german] = {
                         initialScore: word.score,
                         newScore: word.score,
+                        completed: word.completed,
+                        newUnlock: false,
                     };
                 });
                 setStats(initialStats);
@@ -138,9 +140,11 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
         // Update stats for the current word
         setStats((prevStats) => ({
             ...prevStats,
-            [currentWord.english]: {
+            [currentWord.german]: {
                 initialScore: currentWord.score,
                 newScore,
+                completed: newScore === 4,
+                newUnlock: false,
             },
         }));
 
@@ -171,6 +175,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
                 await updateWordScore(currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
                     await unlockNextWord(currentWord.id, currentWord.type);
+                    setStats(() => ({
+                        ...stats
+                    }));
                 }
             } catch (error) {
                 console.error("Failed to update word score in Firestore:", error);

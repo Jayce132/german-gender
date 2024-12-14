@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import {Text, View, StyleSheet} from 'react-native';
 import colors from '../styles/colors';
+import Icon from "react-native-vector-icons/FontAwesome";
 
-const StatsScreenFlashcard = ({ word, initialScore, newScore }) => {
+const StatsScreenFlashcard = ({word, initialScore, newScore, newUnlock, completed}) => {
     const scoreDifference = newScore - initialScore;
 
     // Determine color based on the score difference
@@ -16,7 +17,13 @@ const StatsScreenFlashcard = ({ word, initialScore, newScore }) => {
         <View style={styles.cardContainer}>
             <View style={styles.row}>
                 <Text style={styles.word}>{word}</Text>
-                <Text style={[styles.score, { color: scoreColor }]}>{scoreDifference}</Text>
+                {!newUnlock && !completed &&
+                    <Text style={[styles.score, {color: scoreColor}]}>
+                        {scoreDifference > 0 ? `+${scoreDifference}` : scoreDifference}
+                    </Text>
+                }
+                {completed && <Icon name="trophy" size={24} color={colors.successColor} />}
+                {newUnlock && <Icon name="unlock" size={24} color={colors.textColor} />}
             </View>
         </View>
     );
@@ -30,9 +37,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         marginBottom: 20,
         width: '100%',
-        alignItems: 'flex-start', // Align items to the left
+        alignItems: 'flex-start',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 5,
@@ -41,23 +48,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        alignItems: 'center', // Align items vertically at the center
+        alignItems: 'center',
         width: '100%',
     },
     word: {
         fontSize: 24,
-        fontWeight: '600', // Add boldness for emphasis
+        fontWeight: '600',
         color: colors.textColor,
         flex: 1,
-        marginRight: 10, // Add some space between word and score
+        marginRight: 10,
         marginLeft: 10,
     },
     score: {
         fontSize: 24,
-        fontWeight: '600', // Match the emphasis on score
+        fontWeight: '600',
         color: colors.textColor,
-        textAlign: 'right', // Align the score to the right side
-        marginRight: 20,
+        textAlign: 'right',
     },
 });
 

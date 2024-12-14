@@ -21,6 +21,7 @@ const App = () => {
     // this state is used to determine which component to navigate to after the StatsScreen
     // the stats component will act as a stop before navigating to the next component
     const [componentAfterStats, setComponentAfterStats] = useState('Home');
+    // used to pass the changes in word ratings from the Practice component to the StatsScreen component
     const [stats, setStats] = useState({});
 
     useEffect(() => {
@@ -60,6 +61,7 @@ const App = () => {
                         numWordsToPractice={numWordsToPractice}
                         wordType={wordType}
                         setSelectedComponent={setSelectedComponent}
+                        stats={stats}
                         setStats={setStats}
                     />
                 )}

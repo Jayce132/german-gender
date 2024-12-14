@@ -1,9 +1,9 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {Text, View, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
 import StatsScreenFlashcard from './StatsScreenFlashcard'; // Import the new component
 import colors from '../styles/colors';
 
-const StatsScreen = ({ setSelectedComponent, componentAfterStats, stats }) => {
+const StatsScreen = ({setSelectedComponent, componentAfterStats, stats}) => {
     const handleContinue = () => {
         setSelectedComponent(componentAfterStats);
     };
@@ -19,18 +19,21 @@ const StatsScreen = ({ setSelectedComponent, componentAfterStats, stats }) => {
             </View>
 
             <ScrollView style={styles.scrollContainer}>
-                {Object.keys(stats).map((key) => {
-                    const stat = stats[key];
-                    return (
-                        <StatsScreenFlashcard
-                            key={key}
-                            word={key}
-                            initialScore={stat.initialScore}
-                            newScore={stat.newScore}
-                        />
-                    );
-                })}
+                {Object.entries(stats).map(([key, stat], index) => (
+                    <StatsScreenFlashcard
+                        key={index}
+                        word={key}
+                        initialScore={stat.initialScore}
+                        newScore={stat.newScore}
+                        newUnlock={stat.newUnlock}
+                        completed={stat.completed}
+                    />
+                ))}
             </ScrollView>
+
+            {stats.length === 0 && (
+                <Text style={{color: colors.textColor}}>No words to display</Text>
+            )}
 
             <TouchableOpacity onPress={handleContinue} style={styles.continueButton}>
                 <Text style={styles.continueButtonText}>Continue</Text>
