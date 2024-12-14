@@ -16,7 +16,7 @@ import {updateWordScore} from "../firebase/updateWordScore";
 import {getUnlockedWords} from "../firebase/getUnlockedWords";
 import {unlockNextWord} from "../firebase/unlockNextWord";
 
-const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
+const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, setStats}) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [selectedGender, setSelectedGender] = useState('');
@@ -93,6 +93,19 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
 
                 // Update the state with the selected words
                 setWords(selectedWords);
+
+                // Initialize stats for the selected words
+                if (!stats) {
+                    const initialStats = {};
+                    selectedWords.forEach((word) => {
+                        initialStats[word.german] = {
+                            initialScore: word.score,
+                            newScore: word.score,
+                            newUnlock: false,
+                        };
+                    });
+                    setStats(initialStats);
+                }
             } catch (error) {
                 console.error("Error initializing words:", error);
             }
@@ -125,6 +138,15 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
             newScore = Math.max(currentWord.score - 1, -4);
         }
 
+        setStats((prevStats) => ({
+            ...prevStats,
+            [currentWord.german]: {
+                initialScore: currentWord.score,
+                newScore: newScore,
+                newUnlock: false,
+            },
+        }));
+
         // Update streak
         if (isCorrect) {
             setStreak(streak + 1);
@@ -151,7 +173,17 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
             try {
                 await updateWordScore(currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
-                    await unlockNextWord(currentWord.id, currentWord.type);
+                    const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
+                    if (unlockedWord) {
+                        setStats((prevStats) => ({
+                            ...prevStats,
+                            [unlockedWord.german]: {
+                                initialScore: unlockedWord.score,
+                                newScore: unlockedWord.score,
+                                newUnlock: true,
+                            },
+                        }));
+                    }
                 }
             } catch (error) {
                 console.error("Failed to update word score in Firestore:", error);
@@ -191,13 +223,13 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
                 setAlertOptions({
                     title: 'Retry or Go Home',
                     message: 'You have incorrect words. Would you like to retry them or go back home?',
-                    onCancel: handleGoHome,
+                    onCancel: handleGoHome, // First go to stats, then home
                     onContinue: handleRetry,
                 });
                 setIsCustomAlertVisible(true);
             } else {
-                // All words have been practiced correctly, navigate back to Home
-                setSelectedComponent('Home');
+                // All words have been practiced correctly, navigate to StatsScreen
+                setSelectedComponent('StatsScreen');
             }
         } else {
             // Move to the next word
@@ -250,7 +282,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
      * Handles navigating back to the Home screen.
      */
     const handleGoHome = () => {
-        setSelectedComponent('Home');
+        setSelectedComponent('StatsScreen');
     };
 
     /**

@@ -7,11 +7,12 @@ import { db } from './config';
  *
  * @param {string} currentWordId - The ID of the word that has reached score 4.
  * @param {string} wordType - The type of the word (e.g., noun, verb, etc.).
+ * @returns {Promise<Object|null>} The data of the unlocked word or null if no word is unlocked.
  */
 export const unlockNextWord = async (currentWordId, wordType) => {
     try {
         // Run a transaction to ensure atomicity
-        await runTransaction(db, async (transaction) => {
+        const result = await runTransaction(db, async (transaction) => {
             // Step 1: Fetch the current word
             const currentWordRef = doc(db, 'words', currentWordId);
             const currentWordDoc = await transaction.get(currentWordRef);
@@ -25,7 +26,7 @@ export const unlockNextWord = async (currentWordId, wordType) => {
             // If the word is already completed, do nothing
             if (currentWordData.completed) {
                 console.log(`Word ${currentWordId} is already completed. No further action taken.`);
-                return;
+                return null; // No need to return any word if it's already completed
             }
 
             // Step 2: Mark the current word as completed
@@ -50,11 +51,18 @@ export const unlockNextWord = async (currentWordId, wordType) => {
 
                 transaction.update(nextWordRef, { score: 0 });
                 console.log(`Unlocked word ${nextWordDoc.id} by setting its score to 0.`);
+
+                // Return the data of the next word
+                return nextWordDoc.data();
             } else {
                 console.log('No more words to unlock.');
+                return null; // Return null if no words are available to unlock
             }
         });
+
+        return result;
     } catch (error) {
         console.error('Error unlocking the next word or completing the current word:', error);
+        return null; // Return null in case of error
     }
 };

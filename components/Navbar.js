@@ -2,16 +2,25 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 
-const Navbar = ({ setComponent }) => {
+const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => {
+    const handleChangeComponent = (component) => {
+        if (selectedComponent === 'Practice') {
+            setComponentAfterStats(component);
+            setComponent('StatsScreen');
+        } else {
+            setComponent(component);
+        }
+    }
+
     return (
         <View style={styles.navbar}>
-            <TouchableOpacity onPress={() => setComponent('Home')} style={styles.navButton}>
+            <TouchableOpacity onPress={() => handleChangeComponent('Home')} style={styles.navButton}>
                 <Text style={styles.navButtonText}>Home</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setComponent('Learn')} style={styles.navButton}>
+            <TouchableOpacity onPress={() => handleChangeComponent('Learn')} style={styles.navButton}>
                 <Text style={styles.navButtonText}>Learn</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setComponent('SentenceBuilder')} style={styles.navButton}>
+            <TouchableOpacity onPress={() => handleChangeComponent('SentenceBuilder')} style={styles.navButton}>
                 <Text style={styles.navButtonText}>Sentence Builder</Text>
             </TouchableOpacity>
         </View>
