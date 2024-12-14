@@ -191,13 +191,13 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
                 setAlertOptions({
                     title: 'Retry or Go Home',
                     message: 'You have incorrect words. Would you like to retry them or go back home?',
-                    onCancel: handleGoHome,
+                    onCancel: handleGoHome, // First go to stats, then home
                     onContinue: handleRetry,
                 });
                 setIsCustomAlertVisible(true);
             } else {
-                // All words have been practiced correctly, navigate back to Home
-                setSelectedComponent('Home');
+                // All words have been practiced correctly, navigate to StatsScreen
+                setSelectedComponent('StatsScreen');
             }
         } else {
             // Move to the next word
@@ -250,7 +250,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
      * Handles navigating back to the Home screen.
      */
     const handleGoHome = () => {
-        setSelectedComponent('Home');
+        setSelectedComponent('StatsScreen');
     };
 
     /**
