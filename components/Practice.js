@@ -16,7 +16,7 @@ import {updateWordScore} from "../firebase/updateWordScore";
 import {getUnlockedWords} from "../firebase/getUnlockedWords";
 import {unlockNextWord} from "../firebase/unlockNextWord";
 
-const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
+const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [selectedGender, setSelectedGender] = useState('');
@@ -93,6 +93,16 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
 
                 // Update the state with the selected words
                 setWords(selectedWords);
+
+                // Initialize stats for the selected words
+                const initialStats = {};
+                selectedWords.forEach((word) => {
+                    initialStats[word.english] = {
+                        initialScore: word.score,
+                        newScore: word.score,
+                    };
+                });
+                setStats(initialStats);
             } catch (error) {
                 console.error("Error initializing words:", error);
             }
@@ -124,6 +134,15 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent}) => {
         } else if (!isCorrect && practiceRound === 1) {
             newScore = Math.max(currentWord.score - 1, -4);
         }
+
+        // Update stats for the current word
+        setStats((prevStats) => ({
+            ...prevStats,
+            [currentWord.english]: {
+                initialScore: currentWord.score,
+                newScore,
+            },
+        }));
 
         // Update streak
         if (isCorrect) {

@@ -16,4 +16,7 @@ export default {
     highStreakColor: '#E54B4B',
     disabledCardBackgroundColor: '#333333',
     disabledBadgeColor: '#555555',
+    negativeScoreChangeColor: '#E54B4B',
+    positiveScoreChangeColor: '#5FAD56',
+    neutralScoreChangeColor: '#74B3CE',
 };

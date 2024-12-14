@@ -21,6 +21,7 @@ const App = () => {
     // this state is used to determine which component to navigate to after the StatsScreen
     // the stats component will act as a stop before navigating to the next component
     const [componentAfterStats, setComponentAfterStats] = useState('Home');
+    const [stats, setStats] = useState({});
 
     useEffect(() => {
         const initialize = async () => {
@@ -59,6 +60,7 @@ const App = () => {
                         numWordsToPractice={numWordsToPractice}
                         wordType={wordType}
                         setSelectedComponent={setSelectedComponent}
+                        setStats={setStats}
                     />
                 )}
                 {selectedComponent === 'SentenceBuilder' && (
@@ -68,6 +70,7 @@ const App = () => {
                     <StatsScreen
                         setSelectedComponent={setSelectedComponent}
                         componentAfterStats={componentAfterStats}
+                        stats={stats}
                     />
                 )}
             </View>
