@@ -16,7 +16,7 @@ import {updateWordScore} from "../firebase/updateWordScore";
 import {getUnlockedWords} from "../firebase/getUnlockedWords";
 import {unlockNextWord} from "../firebase/unlockNextWord";
 
-const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, setStats}) => {
+const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [selectedGender, setSelectedGender] = useState('');
@@ -95,7 +95,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                 setWords(selectedWords);
 
                 // Initialize stats for the selected words
-                if (!stats) {
+                if (practiceRound === 1) {
                     const initialStats = {};
                     selectedWords.forEach((word) => {
                         initialStats[word.german] = {
@@ -138,14 +138,16 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
             newScore = Math.max(currentWord.score - 1, -4);
         }
 
-        setStats((prevStats) => ({
-            ...prevStats,
-            [currentWord.german]: {
-                initialScore: currentWord.score,
-                newScore: newScore,
-                newUnlock: false,
-            },
-        }));
+        if (practiceRound === 1) {
+            setStats((prevStats) => ({
+                ...prevStats,
+                [currentWord.german]: {
+                    initialScore: currentWord.score,
+                    newScore: newScore,
+                    newUnlock: false,
+                },
+            }));
+        }
 
         // Update streak
         if (isCorrect) {
@@ -174,7 +176,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                 await updateWordScore(currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
                     const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
-                    if (unlockedWord) {
+                    if (practiceRound === 1 && unlockedWord) {
                         setStats((prevStats) => ({
                             ...prevStats,
                             [unlockedWord.german]: {
