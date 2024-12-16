@@ -3,7 +3,7 @@ import {Text, View, StyleSheet} from 'react-native';
 import colors from '../styles/colors';
 import Icon from "react-native-vector-icons/FontAwesome";
 
-const StatsScreenFlashcard = ({word, initialScore, newScore, newUnlock, completed}) => {
+const StatsScreenFlashcard = ({word, initialScore, newScore, newUnlock}) => {
     const scoreDifference = newScore - initialScore;
 
     // Determine color based on the score difference
@@ -17,17 +17,22 @@ const StatsScreenFlashcard = ({word, initialScore, newScore, newUnlock, complete
         return score === 4;
     }
 
+    const isScoreVisible = (score) => {
+        return score !== -4 && !newUnlock && !isCompletedWord(score);
+    }
+
     return (
         <View style={styles.cardContainer}>
             <View style={styles.row}>
                 <Text style={styles.word}>{word}</Text>
-                {!newUnlock && !isCompletedWord(newScore) &&
+                {isScoreVisible(newScore) &&
                     <Text style={[styles.score, {color: scoreColor}]}>
                         {scoreDifference > 0 ? `+${scoreDifference}` : scoreDifference}
                     </Text>
                 }
                 {isCompletedWord(newScore) && <Icon name="trophy" size={24} color={colors.successColor} />}
                 {newUnlock && <Icon name="unlock" size={24} color={colors.textColor} />}
+                {newScore === -4 && <Icon name="frown-o" size={24} color={colors.negativeScoreChangeColor} />}
             </View>
         </View>
     );
