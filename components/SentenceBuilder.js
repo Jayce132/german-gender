@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView
 import colors from '../styles/colors';
 import highlightSentence from "../utils/highlightSentence";
 import * as Speech from 'expo-speech';
-import {getAllWords} from "../firebase/getAllWords";
+import {getUnlockedWords} from "../firebase/getUnlockedWords";
 
 const SentenceBuilder = () => {
     const [selectedWordTypes, setSelectedWordTypes] = useState([]);
@@ -19,7 +19,7 @@ const SentenceBuilder = () => {
 
     useEffect(() => {
         const fetchWords = async () => {
-            setWordsData( await getAllWords());
+            setWordsData( await getUnlockedWords());
         }
 
         fetchWords()
