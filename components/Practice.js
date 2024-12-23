@@ -50,20 +50,6 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
     const pillHeight = 10; // Adjust as needed
 
     /**
-     * Shuffles an array using the Fisher-Yates algorithm.
-     * @param {Array} array - The array to shuffle.
-     * @returns {Array} - The shuffled array.
-     */
-    const shuffleArray = (array) => {
-        const shuffled = [...array];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled;
-    };
-
-    /**
      * Initializes the practice session by selecting random words.
      */
     useEffect(() => {
@@ -85,11 +71,18 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                     })
                 );
 
-                // Shuffle the words randomly
-                const shuffledWords = shuffleArray(wordsWithStatus);
+                // Sort words by score ascending, then by position ascending
+                const sortedWords = wordsWithStatus.sort((a, b) => {
+                    if (a.score < b.score) return -1;
+                    if (a.score > b.score) return 1;
+                    // If score is the same, sort by position
+                    if (a.position < b.position) return -1;
+                    if (a.position > b.position) return 1;
+                    return 0;
+                });
 
                 // Select the top `numWordsToPractice` words
-                const selectedWords = shuffledWords.slice(0, numWordsToPractice);
+                const selectedWords = sortedWords.slice(0, numWordsToPractice);
 
                 // Update the state with the selected words
                 setWords(selectedWords);
@@ -193,11 +186,18 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
         // Generate letterStatuses for feedback using UnderlineInput
         const correctAnswer = currentWord.german.toLowerCase();
         const userAnswer = germanWordInput.toLowerCase();
+
         const maxLength = Math.max(correctAnswer.length, userAnswer.length);
         const newLetterStatuses = [];
 
         for (let i = 0; i < maxLength; i++) {
-            if (userAnswer[i] === correctAnswer[i]) {
+            const correctChar = correctAnswer[i];
+            const userChar = userAnswer[i];
+
+            if (!userChar) {
+                // If no user input for this index => missing letter
+                newLetterStatuses.push('missing');
+            } else if (userChar === correctChar) {
                 newLetterStatuses.push('correct');
             } else {
                 newLetterStatuses.push('incorrect');
@@ -255,11 +255,8 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
             return;
         }
 
-        // Shuffle the incorrect words
-        const shuffledIncorrectWords = shuffleArray(incorrectWords);
-
         // Select up to `numWordsToPractice` words for retry
-        const retryWords = shuffledIncorrectWords.slice(0, Math.min(numWordsToPractice, incorrectWords.length));
+        const retryWords = incorrectWords.slice(0, Math.min(numWordsToPractice, incorrectWords.length));
 
         // Reset the words array to only incorrect words
         const resetWords = retryWords.map((word, index) => ({
@@ -424,23 +421,33 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                                 {!isReview ? (
                                     <>
                                         {/* UnderlineInput Component for Input */}
-                                        <UnderlineInput
-                                            value={germanWordInput}
-                                            onChangeText={setGermanWordInput}
-                                            length={currentWord.german.length}
-                                            editable={!isReview}
-                                            autoFocus
-                                        />
+                                        {(currentWord.type !== 'noun' || selectedGender) && (
+                                            <UnderlineInput
+                                                value={germanWordInput}
+                                                onChangeText={setGermanWordInput}
+                                                length={currentWord.german.length}
+                                                editable={!isReview}
+                                                autoFocus
+                                            />
+                                        )}
 
                                         {/* Submit Button */}
-                                        <View style={styles.germanWordForm}>
-                                            <TouchableOpacity
-                                                onPress={handleSubmit}
-                                                style={[styles.submitButton]}
-                                            >
-                                                <Text style={styles.submitButtonText}>Submit</Text>
-                                            </TouchableOpacity>
-                                        </View>
+                                        {
+                                            (currentWord.type !== 'noun' || selectedGender) && germanWordInput.trim()
+                                                ? <View style={styles.germanWordForm}>
+                                                    <TouchableOpacity
+                                                        onPress={handleSubmit}
+                                                        style={[styles.submitButton]}
+                                                    >
+                                                        <Text style={styles.submitButtonText}>Submit</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                                : <Text style={styles.instructionText}>
+                                                    {currentWord.type === 'noun' && !selectedGender
+                                                        ? <>Choose an <Text style={styles.highlightText}>article</Text> first</>
+                                                        : <>What is German for <Text style={styles.highlightText}>{currentWord.english}</Text>?</>}
+                                                </Text>
+                                        }
                                     </>
                                 ) : (
                                     <>
@@ -465,6 +472,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, stats, se
                                         </TouchableOpacity>
                                     </>
                                 )}
+
                             </View>
                         )}
                     </>
@@ -597,6 +605,18 @@ const styles = StyleSheet.create({
         color: colors.successColor,
         textAlign: 'center',
         marginVertical: 10,
+    },
+    instructionText: {
+        paddingVertical: 20,
+        paddingHorizontal: 20,
+        fontSize: 18,
+        color: colors.textColor, // Use a noticeable color
+        textAlign: 'center',
+        fontStyle: 'italic',
+    },
+    highlightText: {
+        fontWeight: 'bold',
+        color: colors.highlightColor, // Choose a standout color
     },
 });
 
