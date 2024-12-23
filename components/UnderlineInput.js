@@ -17,21 +17,33 @@ const UnderlineInput = ({
         <View style={[styles.inputContainer, { width: totalWidth }]}>
             <View style={styles.placeholderContainer}>
                 {Array.from({ length }).map((_, index) => {
-                    const letter = value[index] || '';
+                    const userLetter = value[index] || '';
                     const status = letterStatuses[index];
+
+                    // Decide which character to display
+                    let displayedChar = userLetter;
+
+                    if (status === 'missing') {
+                        displayedChar = '?'; // Show 'x' instead of blank
+                    }
+
+                    // Decide text style
                     const textStyle = [styles.placeholderText];
                     if (status === 'correct') {
                         textStyle.push(styles.correctLetter);
-                    } else if (status === 'incorrect') {
+                    } else if (status === 'incorrect' || status === 'missing') {
+                        // 'missing' can share the same red color as incorrect
                         textStyle.push(styles.incorrectLetter);
                     }
+
                     return (
                         <View key={index} style={styles.placeholderBlock}>
-                            <Text style={textStyle}>{letter}</Text>
+                            <Text style={textStyle}>{displayedChar}</Text>
                         </View>
                     );
                 })}
             </View>
+
             {editable && (
                 <TextInput
                     style={styles.overlayTextInput}

@@ -25,11 +25,20 @@ export const seedFirestore = async () => {
                 // Create a document reference with the custom ID
                 const docRef = doc(collection(db, 'words'), docId);
 
+                // For the first 3 words of each type, unlock them
+                const isUnlocked = index < 3;
+
+                let scoreValue = null;
+
+                if (isUnlocked) {
+                    scoreValue = 0;       // Unlocked
+                }
+
                 const wordData = {
                     ...word,
                     type,
                     position: index, // Position to preserve order
-                    score: null, // Initialize score to null
+                    score: scoreValue, // Initialize score to null or 0 if unlocked
                     completed: false,
                 };
 
