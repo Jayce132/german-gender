@@ -1,10 +1,10 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Flashcard = ({item, firstLocked}) => {
-    const {score, german, article, type, english} = item;
+const Flashcard = ({ item, firstLocked }) => {
+    const { score, german, article, type, english, subtype, case: cases } = item; // Destructure subtype and case
 
     const MAX_SCORE = 4;
     const MIN_SCORE = -4;
@@ -25,6 +25,9 @@ const Flashcard = ({item, firstLocked}) => {
             'verb': colors.verbColor,
             'adjective': colors.adjectiveColor,
             'adverb': colors.errorColor,
+            'pronoun': colors.pronounColor,
+            'preposition': colors.prepositionColor, // Add color for prepositions
+            // Add other types as needed
         };
         return typeColorMap[type.toLowerCase()] || colors.textColor;
     };
@@ -46,18 +49,38 @@ const Flashcard = ({item, firstLocked}) => {
         <View
             style={[
                 styles.card,
-                {backgroundColor: isScoreNull ? colors.disabledCardBackgroundColor : colors.cardBackgroundColor},
+                { backgroundColor: isScoreNull ? colors.disabledCardBackgroundColor : colors.cardBackgroundColor },
             ]}
         >
             {isScoreNull && (
                 <View style={styles.lockOverlay}>
-                    <Icon name="lock" size={150} color={colors.textColor}/>
+                    <Icon name="lock" size={150} color={colors.textColor} />
                 </View>
             )}
 
-            <Text style={[styles.labelText, {color: getLabelColor(article, type)}]}>
-                {article || type.charAt(0).toUpperCase() + type.slice(1)}
-            </Text>
+            {/* Header containing label and subtype & case */}
+            <View style={styles.header}>
+                <Text style={[styles.labelText, { color: getLabelColor(article, type) }]}>
+                    {article
+                        ? article.charAt(0).toUpperCase() + article.slice(1)
+                        : type.charAt(0).toUpperCase() + type.slice(1)}
+                </Text>
+                <View style={styles.infoContainer}>
+                    {/* Display subtype(s) if available */}
+                    {subtype && subtype.length > 0 && subtype.map((sub, index) => (
+                        <Text key={`subtype-${index}`} style={styles.infoText}>
+                            {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                        </Text>
+                    ))}
+                    {/* Display case(s) if available */}
+                    {cases && cases.length > 0 && cases.map((c, index) => (
+                        <Text key={`case-${index}`} style={styles.infoText}>
+                            {c.charAt(0).toUpperCase() + c.slice(1)}
+                        </Text>
+                    ))}
+                </View>
+            </View>
+
             <Text
                 style={[
                     styles.germanText,
@@ -74,14 +97,14 @@ const Flashcard = ({item, firstLocked}) => {
                 {article ? 'the ' : ''}{english}
             </Text>
 
-            <View style={[styles.progressContainer, isScoreNull && {justifyContent: 'center'}]}>
+            <View style={[styles.progressContainer, isScoreNull && { justifyContent: 'center' }]}>
                 {isScoreNull ? (
                     firstLocked && (
                         <Text style={styles.unlockText}>Full score on a word needed to unlock</Text>
                     )
                 ) : (
                     <>
-                        <View style={[styles.progressBadge, {backgroundColor: progressColor}]}>
+                        <View style={[styles.progressBadge, { backgroundColor: progressColor }]}>
                             <Text style={styles.progressBadgeText}>{score}</Text>
                         </View>
                         <View style={styles.progressBarContainer}>
@@ -113,7 +136,7 @@ const styles = StyleSheet.create({
         padding: 20,
         // Shadows (iOS)
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.8,
         shadowRadius: 2,
         // Elevation (Android)
@@ -121,10 +144,22 @@ const styles = StyleSheet.create({
         position: 'relative',
         overflow: 'hidden',
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
     labelText: {
-        textAlign: 'left',
         fontSize: 30,
         fontWeight: '400',
+    },
+    infoContainer: {
+        alignItems: 'flex-end',
+    },
+    infoText: {
+        fontSize: 14,
+        color: colors.textColor,
+        fontStyle: 'italic',
     },
     germanText: {
         textAlign: 'center',
@@ -169,7 +204,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: '50%',
         left: '60%',
-        transform: [{translateX: -60}, {translateY: -60}],
+        transform: [{ translateX: -60 }, { translateY: -60 }],
         opacity: 0.5,
         zIndex: 1,
     },

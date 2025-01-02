@@ -5,17 +5,21 @@ import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import LearnHeader from './LearnHeader';
 
+// Define the predefined order
+const predefinedOrder = ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition'];
+
 const Learn = ({ setComponent }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [allWords, setAllWords] = useState([]);
     const [selectedType, setSelectedType] = useState('noun');
+    const [availableTypes, setAvailableTypes] = useState(predefinedOrder); // Initialize with predefined order
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null); // Optional: For error handling
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const loadWords = async () => {
             setLoading(true);
-            setError(null); // Reset error state before fetching
+            setError(null);
             try {
                 const wordsByType = await getAllWords();
 
@@ -56,7 +60,6 @@ const Learn = ({ setComponent }) => {
         <Flashcard item={item} firstLocked={firstLockedByType[item.type] === index} />
     );
 
-    // Optional: Display an error message if fetching fails
     if (error) {
         return (
             <View style={styles.container}>
@@ -66,6 +69,7 @@ const Learn = ({ setComponent }) => {
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
                     setComponent={setComponent}
+                    availableTypes={availableTypes}
                 />
                 <Text style={styles.errorText}>{error}</Text>
             </View>
@@ -80,6 +84,7 @@ const Learn = ({ setComponent }) => {
                 selectedType={selectedType}
                 setSelectedType={setSelectedType}
                 setComponent={setComponent}
+                availableTypes={availableTypes}
             />
             {loading ? (
                 <ActivityIndicator size="large" color={colors.highlightColor} style={styles.loadingIndicator} />

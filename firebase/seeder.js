@@ -1,11 +1,11 @@
-import { collection, doc, setDoc, getDocs, query, deleteDoc } from 'firebase/firestore';
+import { collection, setDoc, doc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from './config';
-import wordsData from '../data/wordsData';
+import wordsData from '../data/wordsData'; // Adjust the path as necessary
 
 /**
  * Seeds the Firestore database with wordsData.
  * Each word will have an additional 'position' field to preserve order
- * and 'score' initialized to null.
+ * and 'score' initialized to null or 0 if unlocked.
  */
 export const seedFirestore = async () => {
     try {
@@ -15,7 +15,7 @@ export const seedFirestore = async () => {
             const words = wordsData[type];
 
             // Iterate over words and assign position based on their index
-            words.forEach(async (word, index) => {
+            for (const [index, word] of words.entries()) {
                 // Determine article or set to 'noart' for non-nouns
                 const article = word.article || 'noart';
 
@@ -31,7 +31,7 @@ export const seedFirestore = async () => {
                 let scoreValue = null;
 
                 if (isUnlocked) {
-                    scoreValue = 0;       // Unlocked
+                    scoreValue = 3; // Unlocked
                 }
 
                 const wordData = {
@@ -45,46 +45,47 @@ export const seedFirestore = async () => {
                 // Write data to Firestore
                 await setDoc(docRef, wordData, { merge: true });
                 console.log(`Seeded word: ${word.german} (ID: ${docId}, Position: ${index})`);
-            });
+            }
         }
 
         console.log('Firestore seeding completed successfully.');
+
+        // Initialize unlockedWords after seeding words
+        await initializeUnlockedWords();
+
     } catch (error) {
         console.error('Error seeding Firestore:', error);
     }
 };
 
-
 /**
- * Deletes all documents from a given collection in Firestore.
- *
- * @param {string} collectionName - The name of the collection to delete.
+ * Initializes the `unlockedWords` collection with all words that have a non-null score.
+ * This should be run once during the seeding process.
  */
-const deleteCollection = async (collectionName) => {
+export const initializeUnlockedWords = async () => {
     try {
-        const collectionRef = collection(db, collectionName);
-        const snapshot = await getDocs(collectionRef);
+        const wordsQuery = query(
+            collection(db, 'words'),
+            where('score', '!=', null), // Filter words with a non-null score
+            orderBy('type'),
+            orderBy('score'),
+            orderBy('position') // Maintain proper sorting order
+        );
 
-        const deletePromises = snapshot.docs.map((doc) => deleteDoc(doc.ref));
-        await Promise.all(deletePromises);
+        const snapshot = await getDocs(wordsQuery);
 
-        console.log(`Deleted all documents from the '${collectionName}' collection.`);
+        for (const docSnapshot of snapshot.docs) {
+            const wordData = docSnapshot.data();
+            const unlockedWordRef = doc(collection(db, 'unlockedWords'), docSnapshot.id);
+
+            // Add word to unlockedWords collection
+            await setDoc(unlockedWordRef, wordData, { merge: true });
+            console.log(`Initialized unlocked word: ${wordData.german} (ID: ${docSnapshot.id})`);
+        }
+
+        console.log('UnlockedWords collection initialized successfully.');
     } catch (error) {
-        console.error(`Error deleting '${collectionName}' collection:`, error);
-    }
-};
-
-/**
- * Deletes all collections: 'words' and 'unlockedWords'.
- */
-export const deleteAllCollections = async () => {
-    try {
-        console.log('Deleting all collections...');
-        await deleteCollection('words');
-        await deleteCollection('unlockedWords');
-        console.log('All collections deleted successfully.');
-    } catch (error) {
-        console.error('Error deleting collections:', error);
+        console.error('Error initializing unlockedWords collection:', error);
     }
 };
 
