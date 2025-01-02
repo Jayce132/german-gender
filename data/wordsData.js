@@ -199,6 +199,7 @@ const wordsData = {
         {
             "german": "sein",
             "english": "to be",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "sein", "explanation": "Infinitive"},
                 {"form": "bin", "explanation": "1st Person Singular Present"},
@@ -216,6 +217,7 @@ const wordsData = {
         {
             "german": "haben",
             "english": "to have",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "haben", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "habe", "explanation": "1st Person Singular Present"},
@@ -232,6 +234,7 @@ const wordsData = {
         {
             "german": "werden",
             "english": "to become, get",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "werden", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "werde", "explanation": "1st Person Singular Present and Imperative Singular Informal"},
@@ -247,6 +250,7 @@ const wordsData = {
         {
             "german": "können",
             "english": "can, to be able to",
+            "subtype": "Modal",
             "forms": [
                 {"form": "können", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "kann", "explanation": "1st/3rd Person Singular Present and Imperative Singular Informal"},
@@ -261,6 +265,7 @@ const wordsData = {
         {
             "german": "müssen",
             "english": "must, to have to",
+            "subtype": "Modal",
             "forms": [
                 {"form": "müssen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "muss", "explanation": "1st/3rd Person Singular Present and Imperative Singular Informal"},
@@ -275,6 +280,7 @@ const wordsData = {
         {
             "german": "sagen",
             "english": "to say",
+            "subtype": null,
             "forms": [
                 {"form": "sagen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "sage", "explanation": "1st Person Singular Present"},
@@ -293,6 +299,7 @@ const wordsData = {
         {
             "german": "machen",
             "english": "to make, do",
+            "subtype": null,
             "forms": [
                 {"form": "machen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "mache", "explanation": "1st Person Singular Present"},
@@ -311,6 +318,7 @@ const wordsData = {
         {
             "german": "geben",
             "english": "to give",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "geben", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "gebe", "explanation": "1st Person Singular Present"},
@@ -327,6 +335,7 @@ const wordsData = {
         {
             "german": "kommen",
             "english": "to come",
+            "subtype": null,
             "forms": [
                 {"form": "kommen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "komme", "explanation": "1st Person Singular Present"},
@@ -345,6 +354,7 @@ const wordsData = {
         {
             "german": "sollen",
             "english": "should, ought to",
+            "subtype": "Modal",
             "forms": [
                 {"form": "sollen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "soll", "explanation": "1st/3rd Person Singular Present and Imperative Singular Informal"},
@@ -359,6 +369,7 @@ const wordsData = {
         {
             "german": "wollen",
             "english": "to want to",
+            "subtype": "Modal",
             "forms": [
                 {"form": "wollen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "will", "explanation": "1st/3rd Person Singular Present and Imperative Singular Informal"},
@@ -373,6 +384,7 @@ const wordsData = {
         {
             "german": "gehen",
             "english": "to go",
+            "subtype": null,
             "forms": [
                 {"form": "gehen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "gehe", "explanation": "1st Person Singular Present"},
@@ -391,6 +403,7 @@ const wordsData = {
         {
             "german": "wissen",
             "english": "to know",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "wissen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "weiß", "explanation": "1st/3rd Person Singular Present and Imperative Singular Informal"},
@@ -405,6 +418,7 @@ const wordsData = {
         {
             "german": "sehen",
             "english": "to see",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "sehen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "sehe", "explanation": "1st Person Singular Present"},
@@ -421,6 +435,7 @@ const wordsData = {
         {
             "german": "lassen",
             "english": "to let, allow, have done",
+            "subtype": "Irregular",
             "forms": [
                 {"form": "lassen", "explanation": "Infinitive and 1st/3rd Person Plural Present"},
                 {"form": "lasse", "explanation": "1st Person Singular Present"},
