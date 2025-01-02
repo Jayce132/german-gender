@@ -2,7 +2,14 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 
-const LearnHeader = ({ searchQuery, setSearchQuery, selectedType, setSelectedType, setComponent }) => {
+const LearnHeader = ({
+                         searchQuery,
+                         setSearchQuery,
+                         selectedType,
+                         setSelectedType,
+                         setComponent,
+                         availableTypes, // Receive ordered types
+                     }) => {
     return (
         <View style={styles.headerContainer}>
             <View style={styles.homeSearchContainer}>
@@ -18,7 +25,7 @@ const LearnHeader = ({ searchQuery, setSearchQuery, selectedType, setSelectedTyp
                 />
             </View>
             <View style={styles.filterContainer}>
-                {['noun', 'verb', 'adjective', 'adverb'].map((type) => (
+                {availableTypes.map((type) => (
                     <TouchableOpacity
                         key={type}
                         style={[
@@ -70,16 +77,18 @@ const styles = StyleSheet.create({
     },
     filterContainer: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
     },
     filterButton: {
-        width: '23%', // Ensures each button takes up roughly equal space in a row of 4
-        paddingVertical: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: 'gray',
         backgroundColor: colors.inputBackgroundColor,
         alignItems: 'center',
+        marginBottom: 10,
     },
     activeFilterButton: {
         backgroundColor: colors.highlightColor,

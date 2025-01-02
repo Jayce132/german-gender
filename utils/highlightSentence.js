@@ -22,6 +22,10 @@ const getLabelColor = (article, type) => {
                 return colors.adjectiveColor; // Purple
             case 'adverb':
                 return colors.errorColor; // Red
+            case 'pronoun':
+                return colors.pronounColor; // Light blue
+            case 'preposition':
+                return colors.prepositionColor; // Green
             default:
                 return colors.textColor;
         }

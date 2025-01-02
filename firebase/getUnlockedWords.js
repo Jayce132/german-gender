@@ -49,37 +49,6 @@ export const getUnlockedWords = async () => {
 };
 
 /**
- * Initializes the `unlockedWords` collection with all words that have a non-null score.
- * This should be run once at the start of the app.
- */
-export const initializeUnlockedWords = async () => {
-    try {
-        const wordsQuery = query(
-            collection(db, 'words'),
-            where('score', '!=', null), // Filter words with a non-null score
-            orderBy('type'),
-            orderBy('score'),
-            orderBy('position') // Maintain proper sorting order
-        );
-
-        const snapshot = await getDocs(wordsQuery);
-
-        for (const docSnapshot of snapshot.docs) {
-            const wordData = docSnapshot.data();
-            const unlockedWordRef = doc(collection(db, 'unlockedWords'), docSnapshot.id);
-
-            // Add word to unlockedWords collection
-            await setDoc(unlockedWordRef, wordData, { merge: true });
-            console.log(`Initialized unlocked word: ${wordData.german} (ID: ${docSnapshot.id})`);
-        }
-
-        console.log('UnlockedWords collection initialized successfully.');
-    } catch (error) {
-        console.error('Error initializing unlockedWords collection:', error);
-    }
-};
-
-/**
  * Synchronizes the `unlockedWords` collection with the `words` collection.
  * Ensures all words with a non-null score are reflected and updated in `unlockedWords`.
  */

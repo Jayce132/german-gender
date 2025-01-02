@@ -9,7 +9,6 @@ import SentenceBuilder from './components/SentenceBuilder';
 import colors from './styles/colors';
 import Home from './components/Home';
 import {
-    initializeUnlockedWords,
     synchronizeUnlockedWords,
 } from "./firebase/getUnlockedWords";
 import StatsScreen from "./components/StatsScreen";
@@ -26,7 +25,6 @@ const App = () => {
 
     useEffect(() => {
         const initialize = async () => {
-            await initializeUnlockedWords();
             synchronizeUnlockedWords()
         };
 

@@ -11,6 +11,8 @@ export default {
     verbColor: '#E67E22',
     adjectiveColor: '#9B59B6',
     adverbColor: '#E74C3C',
+    pronounColor: '#74B3CE',
+    prepositionColor: '#5FAD56',
     lowStreakColor: '#5FAD56',
     mediumStreakColor: '#E67E22',
     highStreakColor: '#E54B4B',
