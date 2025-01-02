@@ -15,7 +15,7 @@ const SentenceBuilder = () => {
     const [highlightedSentence, setHighlightedSentence] = useState([]); // State for highlighted German sentence
     const [wordsData, setWordsData] = useState({ noun: [], verb: [], adjective: [], adverb: [] });
 
-    const wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
+    const wordTypes = ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition'];
 
     useEffect(() => {
         const fetchWords = async () => {
@@ -75,11 +75,7 @@ const SentenceBuilder = () => {
         selectedWordTypes.forEach((type) => {
             const word = selectedWords[type];
             if (word) {
-                if (type === 'noun') {
-                    wordTypePrompts.push(`the noun "${word.article} ${word.german}"`);
-                } else {
-                    wordTypePrompts.push(`the ${type} "${word.german}"`);
-                }
+                wordTypePrompts.push(`the ${type} "${word.german}"`);
             }
         });
 

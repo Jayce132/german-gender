@@ -3,13 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import CustomAlert from './CustomAlert';
-import * as Speech from 'expo-speech'; // Import Speech module
-import highlightSentence from '../utils/highlightSentence'; // Import highlightSentence function
+import * as Speech from 'expo-speech';
+import highlightSentence from '../utils/highlightSentence';
 
 const Revision = ({ words, onReady }) => {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [isAlertVisible, setIsAlertVisible] = useState(false);
 
+    // We'll store the randomly selected German and English sentences for the current word:
+    const [currentGermanSentence, setCurrentGermanSentence] = useState('');
+    const [currentEnglishSentence, setCurrentEnglishSentence] = useState('');
+
+    const currentWord = words[currentWordIndex];
+
+    // Word Navigation Handlers
     const handleNext = () => {
         if (currentWordIndex < words.length - 1) {
             setCurrentWordIndex(currentWordIndex + 1);
@@ -23,7 +30,6 @@ const Revision = ({ words, onReady }) => {
     };
 
     const handleReady = () => {
-        // Check if the user has seen all the words
         if (currentWordIndex < words.length - 1) {
             setIsAlertVisible(true);
         } else {
@@ -40,8 +46,7 @@ const Revision = ({ words, onReady }) => {
         onReady();
     };
 
-    const currentWord = words[currentWordIndex];
-
+    // Speech
     // Function to construct the text to be spoken
     const constructSpeechText = (word) => {
         if (word.article) {
@@ -52,53 +57,58 @@ const Revision = ({ words, onReady }) => {
         return word.german;
     };
 
-    // useEffect to trigger speech when currentWord changes
+    // Pick a random sentence whenever currentWord changes
     useEffect(() => {
-        if (currentWord && currentWord.german) {
-            console.log(`Speaking word: ${currentWord.german}`); // Debugging log
+        if (!currentWord) return;
 
-            // Stop any ongoing speech before starting a new one
-            Speech.stop();
+        // Some items have { sentence: { german, english } }
+        // Others might have { sentence: [ { german, english }, ... ] }
+        // We'll unify these as an array for easier handling:
+        const sentenceArray = Array.isArray(currentWord.sentence)
+            ? currentWord.sentence
+            : [currentWord.sentence];
 
-            // Construct the text to be spoken
-            const textToSpeak = constructSpeechText(currentWord);
+        // Pick one randomly:
+        const randomIndex = Math.floor(Math.random() * sentenceArray.length);
+        const randomSentenceObj = sentenceArray[randomIndex];
 
-            // Configure speech options
-            const options = {
-                language: 'de-DE', // German language
-                pitch: 1.0,
-                rate: 1.0,
-            };
+        setCurrentGermanSentence(randomSentenceObj?.german || '');
+        setCurrentEnglishSentence(randomSentenceObj?.english || '');
 
-            // Speak the constructed text
-            Speech.speak(textToSpeak, options, (error) => {
-                if (error) {
-                    Alert.alert('Error', 'Failed to speak the word.');
-                    console.error('Speech.speak error:', error);
-                } else {
-                    console.log('Speech.speak initiated successfully.');
-                }
-            });
-        }
+        // Also handle speech here
+        Speech.stop();
 
-        // Cleanup function to stop speech when component unmounts or before next word is spoken
+        const textToSpeak = constructSpeechText(currentWord);
+        const options = {
+            language: 'de-DE',
+            pitch: 1.0,
+            rate: 1.0,
+        };
+
+        Speech.speak(textToSpeak, options, (error) => {
+            if (error) {
+                Alert.alert('Error', 'Failed to speak the word.');
+                console.error('Speech.speak error:', error);
+            }
+        });
+
+        // Cleanup on unmount or re-run
         return () => {
             Speech.stop();
         };
     }, [currentWord]);
 
+    // Highlighting
     // Prepare selectedWords object for highlightSentence
-    const selectedWords = currentWord
-        ? { [currentWord.type]: currentWord }
-        : {};
+    const selectedWords = currentWord ? { [currentWord.type]: currentWord } : {};
 
     // Generate highlighted sentences
-    const highlightedGermanSentence = currentWord?.sentence?.german
-        ? highlightSentence(currentWord.sentence.german, selectedWords)
+    const highlightedGermanSentence = currentGermanSentence
+        ? highlightSentence(currentGermanSentence, selectedWords)
         : null;
 
-    const highlightedEnglishSentence = currentWord?.sentence?.english
-        ? highlightSentence(currentWord.sentence.english, selectedWords)
+    const highlightedEnglishSentence = currentEnglishSentence
+        ? highlightSentence(currentEnglishSentence, selectedWords)
         : null;
 
     return (
@@ -126,11 +136,12 @@ const Revision = ({ words, onReady }) => {
             </View>
 
             <View style={styles.navigationContainer}>
-                {/* Previous button, always visible */}
+                {/* Previous button */}
                 <TouchableOpacity
                     onPress={handlePrevious}
                     style={[styles.navButton, currentWordIndex === 0 && styles.hiddenButton]}
-                    disabled={currentWordIndex === 0}>
+                    disabled={currentWordIndex === 0}
+                >
                     <Text style={styles.navButtonText}>Previous</Text>
                 </TouchableOpacity>
 
@@ -141,11 +152,12 @@ const Revision = ({ words, onReady }) => {
                     </Text>
                 )}
 
-                {/* Next button, always visible */}
+                {/* Next button */}
                 <TouchableOpacity
                     onPress={handleNext}
                     style={[styles.navButton, currentWordIndex === words.length - 1 && styles.hiddenButton]}
-                    disabled={currentWordIndex === words.length - 1}>
+                    disabled={currentWordIndex === words.length - 1}
+                >
                     <Text style={styles.navButtonText}>Next</Text>
                 </TouchableOpacity>
             </View>
