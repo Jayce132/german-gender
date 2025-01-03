@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, StatusBar } from 'react-native';
 import colors from '../styles/colors';
 
 const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => {
@@ -10,19 +10,31 @@ const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => 
         } else {
             setComponent(component);
         }
-    }
+    };
+
+    const navItems = [
+        { label: 'Home', component: 'Home' },
+        { label: 'Learn', component: 'Learn' },
+        { label: 'Sentence Builder', component: 'SentenceBuilder' },
+    ];
+
+    // Filter out the current page
+    const filteredNavItems = navItems.filter(
+        (item) => item.component !== selectedComponent
+    );
 
     return (
         <View style={styles.navbar}>
-            <TouchableOpacity onPress={() => handleChangeComponent('Home')} style={styles.navButton}>
-                <Text style={styles.navButtonText}>Home</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleChangeComponent('Learn')} style={styles.navButton}>
-                <Text style={styles.navButtonText}>Learn</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleChangeComponent('SentenceBuilder')} style={styles.navButton}>
-                <Text style={styles.navButtonText}>Sentence Builder</Text>
-            </TouchableOpacity>
+            <StatusBar backgroundColor={colors.buttonBackgroundColor} barStyle="light-content" />
+            {filteredNavItems.map((item) => (
+                <TouchableOpacity
+                    key={item.component}
+                    onPress={() => handleChangeComponent(item.component)}
+                    style={styles.navButton}
+                >
+                    <Text style={styles.navButtonText}>{item.label}</Text>
+                </TouchableOpacity>
+            ))}
         </View>
     );
 };
@@ -33,6 +45,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         backgroundColor: colors.buttonBackgroundColor,
         paddingVertical: 10,
+        paddingTop: StatusBar.currentHeight || 10, // Adjust for the status bar height
     },
     navButton: {
         paddingHorizontal: 10,
