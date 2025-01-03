@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     SafeAreaView, StatusBar, StyleSheet, View,
 } from 'react-native';
@@ -13,7 +13,7 @@ import {
 } from "./firebase/getUnlockedWords";
 import StatsScreen from "./components/StatsScreen";
 import AuthenticationPage from "./components/AuthenticationPage";
-import { UserProvider } from './context/UserContext';
+import {UserProvider} from './context/UserContext';
 
 const App = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
@@ -26,7 +26,6 @@ const App = () => {
         const initialize = async () => {
             synchronizeUnlockedWords()
         };
-
         initialize();
     }, []);
 

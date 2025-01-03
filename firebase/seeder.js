@@ -89,3 +89,67 @@ export const initializeUnlockedWords = async () => {
     }
 };
 
+export const initializeUserWords = async (userId) => {
+    try {
+        const wordTypes = Object.keys(wordsData); // ['noun', 'verb', 'adjective', 'adverb']
+
+        for (const type of wordTypes) {
+            const words = wordsData[type];
+
+            for (const [index, word] of words.entries()) {
+                const article = word.article || 'noart';
+                const docId = `${type}-${article}-${word.german}`;
+                const docRef = doc(collection(db, `users/${userId}/words`), docId);
+
+                const isUnlocked = index < 3;
+                let scoreValue = null;
+
+                if (isUnlocked) {
+                    scoreValue = 3; // Unlocked
+                }
+
+                const wordData = {
+                    ...word,
+                    type,
+                    position: index,
+                    score: scoreValue,
+                    completed: false,
+                };
+
+                await setDoc(docRef, wordData, { merge: true });
+                console.log(`Seeded word for user ${userId}: ${word.german} (ID: ${docId}, Position: ${index})`);
+            }
+        }
+
+        console.log(`Firestore seeding for user ${userId} completed successfully.`);
+    } catch (error) {
+        console.error(`Error seeding Firestore for user ${userId}:`, error);
+    }
+};
+
+export const initializeUserUnlockedWords = async (userId) => {
+    try {
+        const wordsQuery = query(
+            collection(db, `users/${userId}/words`),
+            where('score', '!=', null),
+            orderBy('type'),
+            orderBy('score'),
+            orderBy('position')
+        );
+
+        const snapshot = await getDocs(wordsQuery);
+
+        for (const docSnapshot of snapshot.docs) {
+            const wordData = docSnapshot.data();
+            const unlockedWordRef = doc(collection(db, `users/${userId}/unlockedWords`), docSnapshot.id);
+
+            await setDoc(unlockedWordRef, wordData, { merge: true });
+            console.log(`Initialized unlocked word for user ${userId}: ${wordData.german} (ID: ${docSnapshot.id})`);
+        }
+
+        console.log(`UnlockedWords collection initialized successfully for user ${userId}.`);
+    } catch (error) {
+        console.error(`Error initializing unlockedWords collection for user ${userId}:`, error);
+    }
+}
+

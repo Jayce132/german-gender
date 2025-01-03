@@ -3,8 +3,8 @@ import { View, TouchableOpacity, Text, StyleSheet, StatusBar } from 'react-nativ
 import colors from '../styles/colors';
 import {UserContext} from "../context/UserContext";
 
-const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats, handleLogout }) => {
-    const { currentUserId } = useContext(UserContext);
+const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => {
+    const { currentUserId, setCurrentUserId } = useContext(UserContext);
 
     const handleChangeComponent = (component) => {
         if (selectedComponent === 'Practice') {
@@ -29,6 +29,10 @@ const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats, handl
 
     if (currentUserId) {
         filteredNavItems.splice(-1, 1);
+    }
+
+    const handleLogout = () => {
+        setCurrentUserId(null);
     }
 
     return (

@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import {collection, getDocs, query, orderBy, doc, getDoc} from 'firebase/firestore';
 import { db } from './config';
 
 /**
@@ -42,3 +42,54 @@ export const getAllWords = async () => {
         throw error; // Propagate error for handling
     }
 };
+
+export const getAllWordsForUser = async (userId) => {
+    try {
+        // Ensure the user ID is valid
+        if (!userId) {
+            throw new Error("Invalid user ID");
+        }
+
+        // Reference the user's document in the 'users' collection
+        const userDocRef = doc(db, 'users', userId);
+
+        // Fetch the user document
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+            throw new Error(`User with ID ${userId} does not exist.`);
+        }
+
+        // Extract the 'words' attribute from the user document
+        const userData = userDoc.data();
+        const userWords = userData.words || {};
+
+        if (Object.keys(userWords).length === 0) {
+            throw new Error('No words found for the user.');
+        }
+
+        // Convert the words object into an array and sort by 'position'
+        const sortedWords = Object.entries(userWords)
+            .map(([id, wordData]) => ({ id, ...wordData })) // Convert the words to an array of objects
+            .sort((a, b) => a.position - b.position); // Sort by 'position'
+
+        // Initialize an object to group words by type
+        const wordsByType = {};
+
+        // Process each sorted word
+        sortedWords.forEach(({ id, type, ...wordData }) => {
+            // Initialize the type group if it doesn't exist
+            if (!wordsByType[type]) {
+                wordsByType[type] = [];
+            }
+
+            // Add the word data to the appropriate type group, including the ID
+            wordsByType[type].push({ id, type, ...wordData });
+        });
+
+        return wordsByType;
+    } catch (error) {
+        console.error('Error fetching user words from Firestore:', error);
+        throw error; // Propagate error for handling
+    }
+}
