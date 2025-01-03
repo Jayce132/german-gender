@@ -5,7 +5,7 @@ import {
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 
-const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
+const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType, currentUserId }) => {
     const [selectedType, setSelectedType] = useState(null);
 
     const typeDescriptions = {
@@ -107,17 +107,19 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
         setSelectedComponent('Practice');
     };
 
+    const currentUser = currentUserId || 'Guest';
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.mainContainer}>
                 {/* Header Section */}
                 {!selectedType ?
-                <View style={styles.headerContainer}>
-                    <Text style={styles.headerTitle}>Hello Guest</Text>
-                    <Text style={styles.headerSubtitle}>
-                        What do you want to practice today?
-                    </Text>
-                </View> : <></>
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.headerTitle}>Hello {currentUser}</Text>
+                        <Text style={styles.headerSubtitle}>
+                            What do you want to practice today?
+                        </Text>
+                    </View> : <></>
                 }
 
                 {selectedType ? (

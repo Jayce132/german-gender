@@ -12,6 +12,7 @@ import {
     synchronizeUnlockedWords,
 } from "./firebase/getUnlockedWords";
 import StatsScreen from "./components/StatsScreen";
+import AuthenticationPage from "./components/AuthenticationPage";
 
 const App = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
@@ -22,6 +23,7 @@ const App = () => {
     const [componentAfterStats, setComponentAfterStats] = useState('Home');
     // used to pass the changes in word ratings from the Practice component to the StatsScreen component
     const [stats, setStats] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
         const initialize = async () => {
@@ -30,6 +32,11 @@ const App = () => {
 
         initialize();
     }, []);
+
+    const handleLogout = () => {
+        setCurrentUserId(null);
+        setSelectedComponent('AuthenticationPage');
+    }
 
     return (
         <SafeAreaView style={styles.app}>
@@ -43,6 +50,8 @@ const App = () => {
                     setComponent={setSelectedComponent}
                     selectedComponent={selectedComponent}
                     setComponentAfterStats={setComponentAfterStats}
+                    currentUserId={currentUserId}
+                    handleLogout={handleLogout}
                 />
             )}
             <View style={styles.mainContainer}>
@@ -51,6 +60,7 @@ const App = () => {
                         setNumWordsToPractice={setNumWordsToPractice}
                         setSelectedComponent={setSelectedComponent}
                         setWordType={setWordType}
+                        currentUserId={currentUserId}
                     />
                 )}
                 {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
@@ -65,6 +75,12 @@ const App = () => {
                 )}
                 {selectedComponent === 'SentenceBuilder' && (
                     <SentenceBuilder setSelectedComponent={setSelectedComponent}/>
+                )}
+                {selectedComponent === 'AuthenticationPage' && (
+                    <AuthenticationPage
+                        setSelectedComponent={setSelectedComponent}
+                        setCurrentUserId={setCurrentUserId}
+                    />
                 )}
                 {selectedComponent === 'StatsScreen' && (
                     <StatsScreen
