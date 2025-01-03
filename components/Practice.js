@@ -19,11 +19,18 @@ import {UserContext} from "../context/UserContext";
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
     const [words, setWords] = useState([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+    // For nouns
     const [selectedGender, setSelectedGender] = useState('');
+
+    // For prepositions
+    const [selectedPrepositionCase, setSelectedPrepositionCase] = useState('');
+
     const [germanWordInput, setGermanWordInput] = useState('');
     const [isReview, setIsReview] = useState(false);
     const [practiceRound, setPracticeRound] = useState(1);
     const [isReady, setIsReady] = useState(false);
+
     // Will be used for feedback with UnderlineInput, letter color based on correct or incorrect
     const [letterStatuses, setLetterStatuses] = useState([]);
     const [streak, setStreak] = useState(0);
@@ -36,10 +43,8 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     const [alertOptions, setAlertOptions] = useState({
         title: '',
         message: '',
-        onCancel: () => {
-        },
-        onContinue: () => {
-        },
+        onCancel: () => {},
+        onContinue: () => {},
     });
 
     // Calculate pill size based on screen width and number of words
@@ -66,7 +71,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
 
                 // Adds a status property to each word that is only used in this component
                 const wordsWithStatus = await Promise.all(
-                    wordList.map(async (word, index) => {
+                    wordList.map(async (word) => {
                         return {
                             ...word,
                             attemptStatus: 'unattempted',
@@ -111,27 +116,53 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     }, [numWordsToPractice, wordType]);
 
     const currentWord = words[currentWordIndex];
+
     /**
      * Handles the user's answer submission.
      */
     const handleAnswerCheck = async () => {
         let isCorrect = false;
 
+        // Noun logic
         if (currentWord.type === 'noun') {
             isCorrect =
                 selectedGender === currentWord.article &&
                 germanWordInput.toLowerCase() === currentWord.german.toLowerCase();
-        } else {
+        }
+        // Preposition logic
+        else if (currentWord.type === 'preposition') {
+            // Figure out which case(s) the current preposition takes
+            const prepositionCases = currentWord.case || []; // e.g. ['accusative', 'dative']
+            let correctCase = '';
+
+            if (prepositionCases.length > 1) {
+                // If it has both accusative and dative
+                correctCase = 'both';
+            } else if (prepositionCases[0] === 'accusative') {
+                correctCase = 'accusative';
+            } else {
+                correctCase = 'dative';
+            }
+
+            // We check both the typed German word AND the selected case
+            isCorrect =
+                germanWordInput.toLowerCase() === currentWord.german.toLowerCase() &&
+                selectedPrepositionCase === correctCase;
+        }
+        // Default logic for other word types
+        else {
             isCorrect =
                 germanWordInput.toLowerCase() === currentWord.german.toLowerCase();
         }
 
         // Calculate new score with bounds [-4, 4] only in the first round
         let newScore = currentWord.score;
-        if (isCorrect && practiceRound === 1) {
-            newScore = Math.min(currentWord.score + 1, 4);
-        } else if (!isCorrect && practiceRound === 1) {
-            newScore = Math.max(currentWord.score - 1, -4);
+        if (practiceRound === 1) {
+            if (isCorrect) {
+                newScore = Math.min(currentWord.score + 1, 4);
+            } else {
+                newScore = Math.max(currentWord.score - 1, -4);
+            }
         }
 
         if (practiceRound === 1) {
@@ -242,6 +273,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
 
             // Reset form states
             setSelectedGender('');
+            setSelectedPrepositionCase('');
             setGermanWordInput('');
             setIsReview(false);
         }
@@ -276,6 +308,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
 
         // Reset form states
         setSelectedGender('');
+        setSelectedPrepositionCase('');
         setGermanWordInput('');
         setIsReview(false);
     };
@@ -315,14 +348,15 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
 
         for (let i = 0; i < thresholds.length; i++) {
             if (streak < Math.ceil((numWordsToPractice + 2) * thresholds[i])) {
-                return <Text style={[styles.streakText, {color: streakColors[i]}]}>
-                    {streak}{streakMessages[i]}
-                </Text>;
+                return (
+                    <Text style={[styles.streakText, {color: streakColors[i]}]}>
+                        {streak}{streakMessages[i]}
+                    </Text>
+                );
             }
         }
         return null;
     };
-
 
     return (
         <SafeAreaView style={styles.app}>
@@ -354,9 +388,11 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
                         </View>
 
                         {/*Streak*/}
-                        {streak > 1 && <View>
-                            {getStreakString()}
-                        </View>}
+                        {streak > 1 && (
+                            <View>
+                                {getStreakString()}
+                            </View>
+                        )}
 
                         {/* Main Content */}
                         {currentWord && (
@@ -422,23 +458,97 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
                                     </View>
                                 )}
 
+                                {/* Preposition Case Buttons - Only for Prepositions */}
+                                {currentWord.type === 'preposition' && (
+                                    <View style={styles.prepositionCaseButtonContainer}>
+                                        {['Accusative', 'Dative', 'Both'].map((caseOption) => {
+                                            const lowerCaseOption = caseOption.toLowerCase();
+                                            const isSelected = selectedPrepositionCase === lowerCaseOption;
+
+                                            // Determine the "true" correct case
+                                            const prepositionCases = currentWord.case || [];
+                                            let correctCase = '';
+                                            if (prepositionCases.length > 1) {
+                                                correctCase = 'both';
+                                            } else if (prepositionCases[0] === 'accusative') {
+                                                correctCase = 'accusative';
+                                            } else {
+                                                correctCase = 'dative';
+                                            }
+
+                                            let buttonStyle = [styles.prepositionCaseButton];
+                                            let textStyle = [styles.prepositionCaseButtonText];
+
+                                            if (isSelected) {
+                                                buttonStyle.push(styles.selectedPrepositionCaseButton);
+                                                textStyle.push(styles.selectedPrepositionCaseText);
+                                            }
+
+                                            // In review mode, highlight if user’s selection was correct or not
+                                            if (isReview && isSelected) {
+                                                if (lowerCaseOption === correctCase) {
+                                                    buttonStyle.push(styles.correctBackground, styles.correctBorder);
+                                                    textStyle.push(styles.whiteText);
+                                                } else {
+                                                    buttonStyle.push(styles.incorrectBackground, styles.incorrectBorder);
+                                                    textStyle.push(styles.whiteText);
+                                                }
+                                            }
+
+                                            return (
+                                                <TouchableOpacity
+                                                    key={caseOption}
+                                                    onPress={() => {
+                                                        if (!isReview) setSelectedPrepositionCase(lowerCaseOption);
+                                                    }}
+                                                    style={buttonStyle}
+                                                    disabled={isReview}
+                                                >
+                                                    <Text style={textStyle}>{caseOption}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
+                                )}
+
                                 {!isReview ? (
                                     <>
                                         {/* UnderlineInput Component for Input */}
-                                        {(currentWord.type !== 'noun' || selectedGender) && (
-                                            <UnderlineInput
-                                                value={germanWordInput}
-                                                onChangeText={setGermanWordInput}
-                                                length={currentWord.german.length}
-                                                editable={!isReview}
-                                                autoFocus
-                                            />
-                                        )}
+                                        {
+                                            // For nouns, we show the input only after user selects a gender.
+                                            // For prepositions, we show it only after user selects a case.
+                                            // For others, we always show it.
+                                            (
+                                                (currentWord.type === 'noun' && selectedGender) ||
+                                                (currentWord.type === 'preposition' && selectedPrepositionCase) ||
+                                                (currentWord.type !== 'noun' && currentWord.type !== 'preposition')
+                                            ) && (
+                                                <UnderlineInput
+                                                    value={germanWordInput}
+                                                    onChangeText={setGermanWordInput}
+                                                    length={currentWord.german.length}
+                                                    editable={!isReview}
+                                                    autoFocus
+                                                />
+                                            )
+                                        }
 
                                         {/* Submit Button */}
                                         {
-                                            (currentWord.type !== 'noun' || selectedGender) && germanWordInput.trim()
-                                                ? <View style={styles.germanWordForm}>
+                                            // For nouns, require gender + typed input
+                                            // For prepositions, require case + typed input
+                                            // Otherwise, just typed input
+                                            (
+                                                (currentWord.type === 'noun' &&
+                                                    selectedGender &&
+                                                    germanWordInput.trim()) ||
+                                                (currentWord.type === 'preposition' &&
+                                                    selectedPrepositionCase &&
+                                                    germanWordInput.trim()) ||
+                                                ((currentWord.type !== 'noun' && currentWord.type !== 'preposition') &&
+                                                    germanWordInput.trim())
+                                            ) ? (
+                                                <View style={styles.germanWordForm}>
                                                     <TouchableOpacity
                                                         onPress={handleSubmit}
                                                         style={[styles.submitButton]}
@@ -446,11 +556,16 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
                                                         <Text style={styles.submitButtonText}>Submit</Text>
                                                     </TouchableOpacity>
                                                 </View>
-                                                : <Text style={styles.instructionText}>
+                                            ) : (
+                                                <Text style={styles.instructionText}>
                                                     {currentWord.type === 'noun' && !selectedGender
                                                         ? <>Choose an <Text style={styles.highlightText}>article</Text> first</>
-                                                        : <>What is German for <Text style={styles.highlightText}>{currentWord.english}</Text>?</>}
+                                                        : currentWord.type === 'preposition' && !selectedPrepositionCase
+                                                            ? <>Choose a <Text style={styles.highlightText}>case</Text> first</>
+                                                            : <>What is German for <Text style={styles.highlightText}>{currentWord.english}</Text>?</>
+                                                    }
                                                 </Text>
+                                            )
                                         }
                                     </>
                                 ) : (
@@ -476,7 +591,6 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
                                         </TouchableOpacity>
                                     </>
                                 )}
-
                             </View>
                         )}
                     </>
@@ -519,7 +633,6 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         flexWrap: 'nowrap',
     },
-    // Since pill styles are dynamic, we define them inside the component
 
     mainContent: {
         alignItems: 'center',
@@ -579,6 +692,37 @@ const styles = StyleSheet.create({
     selectedGenderText: {
         color: colors.highlightColor,
     },
+
+    // Preposition case buttons
+    prepositionCaseButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 16,
+    },
+    prepositionCaseButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        backgroundColor: colors.buttonBackgroundColor,
+        borderRadius: 8,
+        marginHorizontal: 5,
+        borderWidth: 1,
+        borderColor: 'transparent',
+        width: 120,
+    },
+    prepositionCaseButtonText: {
+        alignSelf: 'center',
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: '500',
+    },
+    selectedPrepositionCaseButton: {
+        borderColor: colors.highlightColor,
+        borderWidth: 2,
+    },
+    selectedPrepositionCaseText: {
+        color: colors.highlightColor,
+    },
+
     germanWordForm: {
         flexDirection: 'column',
         alignItems: 'center',
@@ -606,7 +750,6 @@ const styles = StyleSheet.create({
     },
     streakText: {
         fontSize: 18,
-        color: colors.successColor,
         textAlign: 'center',
         marginVertical: 10,
     },
