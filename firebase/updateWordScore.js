@@ -21,8 +21,7 @@ export const updateWordScore = async (docId, newScore) => {
 
 export const updateWordScoreForUser = async (userId, wordId, newScore) => {
     try {
-        console.log(userId)
-        const docRef = doc(db, 'users', userId, 'words', wordId);
+        const docRef = doc(db, `users/${userId}/words`, wordId);
         await updateDoc(docRef, { score: newScore });
         console.log(`Updated score for ${wordId} to ${newScore}`);
     } catch (error) {

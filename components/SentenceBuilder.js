@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
     View,
     Text,
@@ -10,7 +10,8 @@ import {
 import colors from '../styles/colors';
 import highlightSentence from "../utils/highlightSentence";
 import * as Speech from 'expo-speech';
-import { getUnlockedWords } from "../firebase/getUnlockedWords";
+import {getUnlockedWordsForUser} from "../firebase/getUnlockedWords";
+import {UserContext} from "../context/UserContext";
 
 // Helper function to determine label color by article/type
 const getLabelColor = (article, type) => {
@@ -50,6 +51,7 @@ const SentenceBuilder = () => {
         pronoun: [],
         preposition: [],
     });
+    const { currentUserId } = useContext(UserContext);
 
     // Controls if the full-screen result is shown
     const [showResults, setShowResults] = useState(false);
@@ -58,7 +60,7 @@ const SentenceBuilder = () => {
 
     useEffect(() => {
         const fetchWords = async () => {
-            setWordsData(await getUnlockedWords());
+            setWordsData(await getUnlockedWordsForUser(currentUserId));
         };
         fetchWords();
     }, []);

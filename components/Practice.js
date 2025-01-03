@@ -12,8 +12,8 @@ import Revision from './Revision';
 import CustomAlert from './CustomAlert';
 import UnderlineInput from "./UnderlineInput";
 import {updateWordScoreForUser} from "../firebase/updateWordScore";
-import {getUnlockedWords} from "../firebase/getUnlockedWords";
-import {unlockNextWord} from "../firebase/unlockNextWord";
+import {getUnlockedWordsForUser} from "../firebase/getUnlockedWords";
+import {unlockNextWordForUser} from "../firebase/unlockNextWord";
 import {UserContext} from "../context/UserContext";
 
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
@@ -62,7 +62,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
         const initializeWords = async () => {
             try {
                 // Retrieve only unlocked words grouped by type from Firestore
-                const allWords = await getUnlockedWords();
+                const allWords = await getUnlockedWordsForUser(currentUserId);
 
                 // Extract the word list for the selected type
                 const wordList = allWords[wordType] || [];
@@ -200,7 +200,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
             try {
                 await updateWordScoreForUser(currentUserId, currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
-                    const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
+                    const unlockedWord = await unlockNextWordForUser(currentWord.id, currentWord.type, currentUserId);
                     if (practiceRound === 1 && unlockedWord) {
                         setStats((prevStats) => ({
                             ...prevStats,
