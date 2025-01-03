@@ -8,7 +8,7 @@ import {
     Alert,
 } from 'react-native';
 import colors from "../styles/colors";
-import {createUser} from '../firebase/user';
+import {createUser, exists} from '../firebase/user';
 import {UserContext} from "../context/UserContext";
 
 const AuthenticationPage = ({setSelectedComponent}) => {
@@ -18,7 +18,9 @@ const AuthenticationPage = ({setSelectedComponent}) => {
     const handleSubmit = async () => {
         if (name.trim()) {
             try {
-                await createUser(name);
+                if (!await exists(name)) {
+                    await createUser(name);
+                }
                 setCurrentUserId(name);
                 setSelectedComponent('Home');
             } catch (error) {
