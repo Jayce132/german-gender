@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     SafeAreaView, StatusBar, StyleSheet, View,
 } from 'react-native';
@@ -13,17 +13,14 @@ import {
 } from "./firebase/getUnlockedWords";
 import StatsScreen from "./components/StatsScreen";
 import AuthenticationPage from "./components/AuthenticationPage";
+import { UserProvider } from './context/UserContext';
 
 const App = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
     const [numWordsToPractice, setNumWordsToPractice] = useState(5); // Default number of words
     const [wordType, setWordType] = useState('noun'); // Default word type
-    // this state is used to determine which component to navigate to after the StatsScreen
-    // the stats component will act as a stop before navigating to the next component
     const [componentAfterStats, setComponentAfterStats] = useState('Home');
-    // used to pass the changes in word ratings from the Practice component to the StatsScreen component
     const [stats, setStats] = useState(null);
-    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
         const initialize = async () => {
@@ -33,65 +30,57 @@ const App = () => {
         initialize();
     }, []);
 
-    const handleLogout = () => {
-        setCurrentUserId(null);
-        setSelectedComponent('AuthenticationPage');
-    }
-
     return (
-        <SafeAreaView style={styles.app}>
-            <StatusBar
-                barStyle="light-content"
-                backgroundColor={colors.backgroundColor}
-            />
-            {/* Conditionally render Navbar only if selectedComponent is not 'Learn' */}
-            {selectedComponent !== 'Learn' && (
-                <Navbar
-                    setComponent={setSelectedComponent}
-                    selectedComponent={selectedComponent}
-                    setComponentAfterStats={setComponentAfterStats}
-                    currentUserId={currentUserId}
-                    handleLogout={handleLogout}
+        <UserProvider>
+            <SafeAreaView style={styles.app}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor={colors.backgroundColor}
                 />
-            )}
-            <View style={styles.mainContainer}>
-                {selectedComponent === 'Home' && (
-                    <Home
-                        setNumWordsToPractice={setNumWordsToPractice}
-                        setSelectedComponent={setSelectedComponent}
-                        setWordType={setWordType}
-                        currentUserId={currentUserId}
+                {selectedComponent !== 'Learn' && (
+                    <Navbar
+                        setComponent={setSelectedComponent}
+                        selectedComponent={selectedComponent}
+                        setComponentAfterStats={setComponentAfterStats}
                     />
                 )}
-                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
-                {selectedComponent === 'Practice' && (
-                    <Practice
-                        numWordsToPractice={numWordsToPractice}
-                        wordType={wordType}
-                        setSelectedComponent={setSelectedComponent}
-                        stats={stats}
-                        setStats={setStats}
-                    />
-                )}
-                {selectedComponent === 'SentenceBuilder' && (
-                    <SentenceBuilder setSelectedComponent={setSelectedComponent}/>
-                )}
-                {selectedComponent === 'AuthenticationPage' && (
-                    <AuthenticationPage
-                        setSelectedComponent={setSelectedComponent}
-                        setCurrentUserId={setCurrentUserId}
-                    />
-                )}
-                {selectedComponent === 'StatsScreen' && (
-                    <StatsScreen
-                        setSelectedComponent={setSelectedComponent}
-                        componentAfterStats={componentAfterStats}
-                        stats={stats}
-                        setStats={setStats}
-                    />
-                )}
-            </View>
-        </SafeAreaView>
+                <View style={styles.mainContainer}>
+                    {selectedComponent === 'Home' && (
+                        <Home
+                            setNumWordsToPractice={setNumWordsToPractice}
+                            setSelectedComponent={setSelectedComponent}
+                            setWordType={setWordType}
+                        />
+                    )}
+                    {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
+                    {selectedComponent === 'Practice' && (
+                        <Practice
+                            numWordsToPractice={numWordsToPractice}
+                            wordType={wordType}
+                            setSelectedComponent={setSelectedComponent}
+                            stats={stats}
+                            setStats={setStats}
+                        />
+                    )}
+                    {selectedComponent === 'SentenceBuilder' && (
+                        <SentenceBuilder setSelectedComponent={setSelectedComponent}/>
+                    )}
+                    {selectedComponent === 'AuthenticationPage' && (
+                        <AuthenticationPage
+                            setSelectedComponent={setSelectedComponent}
+                        />
+                    )}
+                    {selectedComponent === 'StatsScreen' && (
+                        <StatsScreen
+                            setSelectedComponent={setSelectedComponent}
+                            componentAfterStats={componentAfterStats}
+                            stats={stats}
+                            setStats={setStats}
+                        />
+                    )}
+                </View>
+            </SafeAreaView>
+        </UserProvider>
     );
 };
 

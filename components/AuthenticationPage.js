@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useContext, useState} from 'react';
 import {
     View,
     Text,
@@ -8,10 +8,12 @@ import {
     Alert,
 } from 'react-native';
 import colors from "../styles/colors";
-import { createUser } from '../firebase/user';
+import {createUser} from '../firebase/user';
+import {UserContext} from "../context/UserContext";
 
-const AuthenticationPage = ({setSelectedComponent, setCurrentUserId}) => {
+const AuthenticationPage = ({setSelectedComponent}) => {
     const [name, setName] = useState('');
+    const {setCurrentUserId} = useContext(UserContext);
 
     const handleSubmit = async () => {
         if (name.trim()) {

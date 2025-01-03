@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
     SafeAreaView,
     StyleSheet,
@@ -11,9 +11,10 @@ import colors from '../styles/colors';
 import Revision from './Revision';
 import CustomAlert from './CustomAlert';
 import UnderlineInput from "./UnderlineInput";
-import {updateWordScore} from "../firebase/updateWordScore";
+import {updateWordScoreForUser} from "../firebase/updateWordScore";
 import {getUnlockedWords} from "../firebase/getUnlockedWords";
 import {unlockNextWord} from "../firebase/unlockNextWord";
+import {UserContext} from "../context/UserContext";
 
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
     const [words, setWords] = useState([]);
@@ -33,6 +34,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     // Will be used for feedback with UnderlineInput, letter color based on correct or incorrect
     const [letterStatuses, setLetterStatuses] = useState([]);
     const [streak, setStreak] = useState(0);
+    const {currentUserId} = useContext(UserContext);
 
     // State for CustomAlert
     const [isCustomAlertVisible, setIsCustomAlertVisible] = useState(false);
@@ -51,7 +53,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     const totalMargin = (totalPills - 1) * pillMargin * 2;
     const availableWidth = maxPillContainerWidth - totalMargin;
     const pillWidth = Math.min(availableWidth / totalPills, 20); // Max pill width
-    const pillHeight = 10; // Adjust as needed
+    const pillHeight = 10;
 
     /**
      * Initializes the practice session by selecting random words.
@@ -196,7 +198,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
         // Update the score in Firestore using the custom ID only in the first round
         if (practiceRound === 1) {
             try {
-                await updateWordScore(currentWord.id, newScore); // Use the custom ID
+                await updateWordScoreForUser(currentUserId, currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
                     const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
                     if (practiceRound === 1 && unlockedWord) {

@@ -18,3 +18,15 @@ export const updateWordScore = async (docId, newScore) => {
         throw error;
     }
 };
+
+export const updateWordScoreForUser = async (userId, wordId, newScore) => {
+    try {
+        console.log(userId)
+        const docRef = doc(db, 'users', userId, 'words', wordId);
+        await updateDoc(docRef, { score: newScore });
+        console.log(`Updated score for ${wordId} to ${newScore}`);
+    } catch (error) {
+        console.error(`Error updating score for ${wordId}:`, error);
+        throw error;
+    }
+}

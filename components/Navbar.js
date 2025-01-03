@@ -1,8 +1,11 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, StatusBar } from 'react-native';
 import colors from '../styles/colors';
+import {UserContext} from "../context/UserContext";
 
-const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats, currentUserId, handleLogout }) => {
+const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats, handleLogout }) => {
+    const { currentUserId } = useContext(UserContext);
+
     const handleChangeComponent = (component) => {
         if (selectedComponent === 'Practice') {
             setComponentAfterStats(component);
