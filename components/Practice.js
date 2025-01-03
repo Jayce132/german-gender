@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {
     SafeAreaView,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -323,7 +322,6 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
 
     return (
         <SafeAreaView style={styles.app}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.backgroundColor}/>
             <View style={styles.mainContainer}>
                 {!isReady ? (
                     <Revision

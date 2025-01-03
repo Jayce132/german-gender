@@ -122,12 +122,6 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
 
                 {selectedType ? (
                     <View style={styles.singleTypeContainer}>
-                        <TouchableOpacity style={[styles.typeButton, styles.selectedTypeButton]}>
-                            <Text style={[styles.typeButtonText, styles.selectedTypeButtonText]}>
-                                {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}
-                            </Text>
-                        </TouchableOpacity>
-
                         <Text style={styles.typeDescription}>{typeDescriptions[selectedType]}</Text>
 
                         {selectedWord && (
@@ -140,7 +134,7 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
                         )}
 
                         <TouchableOpacity onPress={() => setSelectedType(null)} style={styles.chooseAnotherButton}>
-                            <Text style={styles.chooseAnotherButtonText}>Choose another</Text>
+                            <Text style={styles.chooseAnotherButtonText}>Go back</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
@@ -153,7 +147,7 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
                                     onPress={() => setSelectedType(type)}
                                 >
                                     <Text style={styles.typeButtonText}>
-                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        {type.charAt(0).toUpperCase() + type.slice(1) + "s"}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -191,7 +185,7 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 10,
         padding: 15,
-        marginTop: 10,
+        marginTop: 50,
         alignItems: 'center',
     },
     headerTitle: {
@@ -254,7 +248,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     chooseAnotherButton: {
-        marginTop: 10,
+        marginTop: 50,
+        marginBottom: 100,
         paddingVertical: 10,
         paddingHorizontal: 18,
         borderRadius: 8,
