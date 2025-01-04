@@ -35,6 +35,8 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     const [letterStatuses, setLetterStatuses] = useState([]);
     const [streak, setStreak] = useState(0);
     const {currentUserId} = useContext(UserContext);
+    // used to prevent the manipulation of the streak score when spamming the submit button
+    const [wasStreakUpdated, setWasStreakUpdated] = useState(false);
 
     // State for CustomAlert
     const [isCustomAlertVisible, setIsCustomAlertVisible] = useState(false);
@@ -174,12 +176,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
             }));
         }
 
-        // Update streak
-        if (isCorrect) {
-            setStreak(streak + 1);
-        } else {
-            setStreak(0);
-        }
+        // increase the streak if the answer is correct and the streak was not already updated (to prevent spamming the submit button)
+        setStreak(isCorrect && !wasStreakUpdated ? streak + 1 : 0);
+        setWasStreakUpdated(true);
 
         // Update attemptStatus and score for the current word only in first round
         const updatedWords = words.map((word, index) => {
@@ -247,6 +246,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
      * Handles moving to the next word or prompting for retry/home.
      */
     const handleContinue = () => {
+        // reset the flag
+        setWasStreakUpdated(false);
+
         // Check if we have reached the end of the words list
         if (currentWordIndex + 1 >= words.length) {
             // Check if there are any incorrect words
