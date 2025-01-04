@@ -1,4 +1,4 @@
-import {collection, getDocs, query, orderBy, setDoc, doc, where, onSnapshot} from 'firebase/firestore';
+import {collection, getDocs, query, orderBy, setDoc, doc, where, onSnapshot, deleteDoc} from 'firebase/firestore';
 import {db} from './config';
 
 /**
@@ -87,3 +87,68 @@ export const synchronizeUnlockedWords = () => {
         console.error('Error setting up unlockedWords synchronization:', error);
     }
 };
+
+export const getUnlockedWordsForUser = async (userId) => {
+    try {
+        const unlockedWordsQuery = query(
+            collection(db, `users/${userId}/unlockedWords`),
+            orderBy('type'),
+            orderBy('score'),
+            orderBy('position')
+        );
+
+        const snapshot = await getDocs(unlockedWordsQuery);
+        const unlockedWordsByType = {};
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const id = doc.id;
+
+            const {type, ...wordData} = data;
+
+            if (!unlockedWordsByType[type]) {
+                unlockedWordsByType[type] = [];
+            }
+
+            unlockedWordsByType[type].push({id, type, ...wordData});
+        });
+
+        return unlockedWordsByType;
+    } catch (error) {
+        console.error('Error fetching unlocked words from Firestore:', error);
+        throw error;
+    }
+}
+
+export const synchronizeUnlockedWordsForUser = (userId) => {
+    try {
+        const wordsQuery = query(
+            collection(db, `users/${userId}/words`),
+            where('score', '!=', null),
+            orderBy('type'),
+            orderBy('score'),
+            orderBy('position')
+        );
+
+        onSnapshot(wordsQuery, async (snapshot) => {
+            for (const change of snapshot.docChanges()) {
+                const wordData = change.doc.data();
+                const unlockedWordRef = doc(collection(db, `users/${userId}/unlockedWords`), change.doc.id);
+
+                if (change.type === 'added' || change.type === 'modified') {
+                    await setDoc(unlockedWordRef, wordData, { merge: true });
+                    console.log(
+                        `${change.type === 'added' ? 'Added' : 'Updated'} unlocked word: ${wordData.german} (ID: ${change.doc.id})`
+                    );
+                } else if (change.type === 'removed') {
+                    await deleteDoc(unlockedWordRef);
+                    console.log(`Removed unlocked word: ${wordData.german} (ID: ${change.doc.id})`);
+                }
+            }
+        });
+
+        console.log('Listening for changes in the user words collection to update unlockedWords.');
+    } catch (error) {
+        console.error('Error setting up unlockedWords synchronization:', error);
+    }
+}

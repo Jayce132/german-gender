@@ -1,8 +1,11 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, StatusBar } from 'react-native';
 import colors from '../styles/colors';
+import {UserContext} from "../context/UserContext";
 
 const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => {
+    const { currentUserId, setCurrentUserId } = useContext(UserContext);
+
     const handleChangeComponent = (component) => {
         if (selectedComponent === 'Practice') {
             setComponentAfterStats(component);
@@ -16,12 +19,21 @@ const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => 
         { label: 'Home', component: 'Home' },
         { label: 'Learn', component: 'Learn' },
         { label: 'Sentence Builder', component: 'SentenceBuilder' },
+        { label: 'Login', component: 'AuthenticationPage' },
     ];
 
     // Filter out the current page
     const filteredNavItems = navItems.filter(
         (item) => item.component !== selectedComponent
     );
+
+    if (currentUserId) {
+        filteredNavItems.splice(-1, 1);
+    }
+
+    const handleLogout = () => {
+        setCurrentUserId(null);
+    }
 
     return (
         <View style={styles.navbar}>
@@ -35,6 +47,11 @@ const Navbar = ({ setComponent, selectedComponent, setComponentAfterStats }) => 
                     <Text style={styles.navButtonText}>{item.label}</Text>
                 </TouchableOpacity>
             ))}
+            {currentUserId && (
+                <TouchableOpacity onPress={handleLogout} style={styles.navButton}>
+                    <Text style={styles.navButtonText}>Logout</Text>
+                </TouchableOpacity>
+            )}
         </View>
     );
 };
@@ -45,7 +62,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         backgroundColor: colors.buttonBackgroundColor,
         paddingVertical: 10,
-        paddingTop: StatusBar.currentHeight || 10, // Adjust for the status bar height
+        paddingTop: StatusBar.currentHeight || 10,
     },
     navButton: {
         paddingHorizontal: 10,

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { getAllWords } from '../firebase/getAllWords';
+import {getAllWordsForUser} from '../firebase/getAllWords';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import LearnHeader from './LearnHeader';
+import {UserContext} from "../context/UserContext";
 
 // Define the predefined order
 const predefinedOrder = ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition'];
@@ -15,13 +16,14 @@ const Learn = ({ setComponent }) => {
     const [availableTypes, setAvailableTypes] = useState(predefinedOrder); // Initialize with predefined order
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { currentUserId } = useContext(UserContext);
 
     useEffect(() => {
         const loadWords = async () => {
             setLoading(true);
             setError(null);
             try {
-                const wordsByType = await getAllWords();
+                const wordsByType = await getAllWordsForUser(currentUserId);
 
                 // Flatten the wordsByType object into a single array
                 const flatWords = Object.entries(wordsByType).flatMap(([type, words]) =>

@@ -1,35 +1,38 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    SafeAreaView, StatusBar, StyleSheet, View,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    View,
 } from 'react-native';
 import Navbar from './components/Navbar';
-import Learn from './components/Learn';
+import Home from './components/Home';
 import Practice from './components/Practice';
 import SentenceBuilder from './components/SentenceBuilder';
+import StatsScreen from './components/StatsScreen';
+import AuthenticationPage from './components/AuthenticationPage';
+import Learn from './components/Learn';
+import { UserProvider, UserContext } from './context/UserContext';
+import { synchronizeUnlockedWordsForUser } from './firebase/getUnlockedWords';
 import colors from './styles/colors';
-import Home from './components/Home';
-import {
-    synchronizeUnlockedWords,
-} from "./firebase/getUnlockedWords";
-import StatsScreen from "./components/StatsScreen";
 
-const App = () => {
+const MainApp = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
-    const [numWordsToPractice, setNumWordsToPractice] = useState(5); // Default number of words
-    const [wordType, setWordType] = useState('noun'); // Default word type
-    // this state is used to determine which component to navigate to after the StatsScreen
-    // the stats component will act as a stop before navigating to the next component
+    const [numWordsToPractice, setNumWordsToPractice] = useState(5);
+    const [wordType, setWordType] = useState('noun');
     const [componentAfterStats, setComponentAfterStats] = useState('Home');
-    // used to pass the changes in word ratings from the Practice component to the StatsScreen component
     const [stats, setStats] = useState(null);
+
+    const { currentUserId } = React.useContext(UserContext);
 
     useEffect(() => {
         const initialize = async () => {
-            synchronizeUnlockedWords()
+            if (currentUserId) {
+                await synchronizeUnlockedWordsForUser(currentUserId);
+            }
         };
-
         initialize();
-    }, []);
+    }, [currentUserId]);
 
     return (
         <SafeAreaView style={styles.app}>
@@ -37,7 +40,6 @@ const App = () => {
                 barStyle="light-content"
                 backgroundColor={colors.backgroundColor}
             />
-            {/* Conditionally render Navbar only if selectedComponent is not 'Learn' */}
             {selectedComponent !== 'Learn' && (
                 <Navbar
                     setComponent={setSelectedComponent}
@@ -53,7 +55,7 @@ const App = () => {
                         setWordType={setWordType}
                     />
                 )}
-                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent}/>}
+                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent} />}
                 {selectedComponent === 'Practice' && (
                     <Practice
                         numWordsToPractice={numWordsToPractice}
@@ -64,7 +66,10 @@ const App = () => {
                     />
                 )}
                 {selectedComponent === 'SentenceBuilder' && (
-                    <SentenceBuilder setSelectedComponent={setSelectedComponent}/>
+                    <SentenceBuilder setSelectedComponent={setSelectedComponent} />
+                )}
+                {selectedComponent === 'AuthenticationPage' && (
+                    <AuthenticationPage setSelectedComponent={setSelectedComponent} />
                 )}
                 {selectedComponent === 'StatsScreen' && (
                     <StatsScreen
@@ -76,6 +81,14 @@ const App = () => {
                 )}
             </View>
         </SafeAreaView>
+    );
+};
+
+const App = () => {
+    return (
+        <UserProvider>
+            <MainApp />
+        </UserProvider>
     );
 };
 

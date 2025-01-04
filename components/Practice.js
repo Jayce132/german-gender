@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
     SafeAreaView,
     StyleSheet,
@@ -11,9 +11,10 @@ import colors from '../styles/colors';
 import Revision from './Revision';
 import CustomAlert from './CustomAlert';
 import UnderlineInput from "./UnderlineInput";
-import {updateWordScore} from "../firebase/updateWordScore";
-import {getUnlockedWords} from "../firebase/getUnlockedWords";
-import {unlockNextWord} from "../firebase/unlockNextWord";
+import {updateWordScoreForUser} from "../firebase/updateWordScore";
+import {getUnlockedWordsForUser} from "../firebase/getUnlockedWords";
+import {unlockNextWordForUser} from "../firebase/unlockNextWord";
+import {UserContext} from "../context/UserContext";
 
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
     const [words, setWords] = useState([]);
@@ -33,6 +34,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     // Will be used for feedback with UnderlineInput, letter color based on correct or incorrect
     const [letterStatuses, setLetterStatuses] = useState([]);
     const [streak, setStreak] = useState(0);
+    const {currentUserId} = useContext(UserContext);
+    // used to prevent the manipulation of the streak score when spamming the submit button
+    const [wasStreakUpdated, setWasStreakUpdated] = useState(false);
 
     // State for CustomAlert
     const [isCustomAlertVisible, setIsCustomAlertVisible] = useState(false);
@@ -51,7 +55,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
     const totalMargin = (totalPills - 1) * pillMargin * 2;
     const availableWidth = maxPillContainerWidth - totalMargin;
     const pillWidth = Math.min(availableWidth / totalPills, 20); // Max pill width
-    const pillHeight = 10; // Adjust as needed
+    const pillHeight = 10;
 
     /**
      * Initializes the practice session by selecting random words.
@@ -60,7 +64,7 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
         const initializeWords = async () => {
             try {
                 // Retrieve only unlocked words grouped by type from Firestore
-                const allWords = await getUnlockedWords();
+                const allWords = await getUnlockedWordsForUser(currentUserId);
 
                 // Extract the word list for the selected type
                 const wordList = allWords[wordType] || [];
@@ -172,12 +176,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
             }));
         }
 
-        // Update streak
-        if (isCorrect) {
-            setStreak(streak + 1);
-        } else {
-            setStreak(0);
-        }
+        // increase the streak if the answer is correct and the streak was not already updated (to prevent spamming the submit button)
+        setStreak(isCorrect && !wasStreakUpdated ? streak + 1 : 0);
+        setWasStreakUpdated(true);
 
         // Update attemptStatus and score for the current word only in first round
         const updatedWords = words.map((word, index) => {
@@ -196,9 +197,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
         // Update the score in Firestore using the custom ID only in the first round
         if (practiceRound === 1) {
             try {
-                await updateWordScore(currentWord.id, newScore); // Use the custom ID
+                await updateWordScoreForUser(currentUserId, currentWord.id, newScore); // Use the custom ID
                 if (newScore === 4) {
-                    const unlockedWord = await unlockNextWord(currentWord.id, currentWord.type);
+                    const unlockedWord = await unlockNextWordForUser(currentWord.id, currentWord.type, currentUserId);
                     if (practiceRound === 1 && unlockedWord) {
                         setStats((prevStats) => ({
                             ...prevStats,
@@ -245,6 +246,9 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
      * Handles moving to the next word or prompting for retry/home.
      */
     const handleContinue = () => {
+        // reset the flag
+        setWasStreakUpdated(false);
+
         // Check if we have reached the end of the words list
         if (currentWordIndex + 1 >= words.length) {
             // Check if there are any incorrect words

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, {useContext, useState} from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
 } from 'react-native';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
+import {UserContext} from "../context/UserContext";
 
 const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
     const [selectedType, setSelectedType] = useState(null);
+    const { currentUserId } = useContext(UserContext);
 
     const typeDescriptions = {
         noun: 'A noun is a person, place, thing, or idea',
@@ -112,12 +114,12 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
             <View style={styles.mainContainer}>
                 {/* Header Section */}
                 {!selectedType ?
-                <View style={styles.headerContainer}>
-                    <Text style={styles.headerTitle}>Hello Guest</Text>
-                    <Text style={styles.headerSubtitle}>
-                        What do you want to practice today?
-                    </Text>
-                </View> : <></>
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.headerTitle}>Hello {currentUserId || 'Guest'}</Text>
+                        <Text style={styles.headerSubtitle}>
+                            What do you want to practice today?
+                        </Text>
+                    </View> : <></>
                 }
 
                 {selectedType ? (
