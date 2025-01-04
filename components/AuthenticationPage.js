@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import colors from "../styles/colors";
 import {createUser, exists} from '../firebase/user';
@@ -13,10 +14,12 @@ import {UserContext} from "../context/UserContext";
 
 const AuthenticationPage = ({setSelectedComponent}) => {
     const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false);
     const {setCurrentUserId} = useContext(UserContext);
 
     const handleSubmit = async () => {
         if (name.trim()) {
+            setLoading(true);
             try {
                 if (!await exists(name)) {
                     await createUser(name);
@@ -25,6 +28,8 @@ const AuthenticationPage = ({setSelectedComponent}) => {
                 setSelectedComponent('Home');
             } catch (error) {
                 Alert.alert('Error creating user:', error.message);
+            } finally {
+                setLoading(false);
             }
         } else {
             Alert.alert('Please enter your name.');
@@ -40,9 +45,17 @@ const AuthenticationPage = ({setSelectedComponent}) => {
                 placeholderTextColor="#aaa"
                 value={name}
                 onChangeText={setName}
+                editable={!loading}
             />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>Submit</Text>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+                {loading ? (
+                    <>
+                        <ActivityIndicator size="small" color="#fff"/>
+                        <Text style={styles.buttonText}>  Creating your account...</Text>
+                    </>
+                ) : (
+                    <Text style={styles.buttonText}>Submit</Text>
+                )}
             </TouchableOpacity>
         </View>
     );
@@ -77,6 +90,9 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     buttonText: {
         color: colors.textColor,
@@ -84,4 +100,5 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
+
 export default AuthenticationPage;
