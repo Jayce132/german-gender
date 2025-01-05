@@ -44,9 +44,7 @@ const AuthenticationPage = ({setSelectedComponent}) => {
                 }
 
                 // check if email is already in use
-                console.log(email);
                 const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-                console.log(signInMethods);
 
                 if (signInMethods.length === 0 && !isNewUser) {
                     // no account exists with this email
