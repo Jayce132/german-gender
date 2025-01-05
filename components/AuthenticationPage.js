@@ -1,29 +1,35 @@
-import React, {useContext, useState} from 'react';
+import React, { useContext, useState } from 'react';
 import {
     View,
     Text,
     TextInput,
     TouchableOpacity,
     StyleSheet,
+    ActivityIndicator,
 } from 'react-native';
 import colors from "../styles/colors";
-import {auth} from '../firebase/config';
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth';
-import {UserContext} from "../context/UserContext";
+import { auth } from '../firebase/config';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { UserContext } from "../context/UserContext";
+import { createUser } from "../firebase/user";
 
-const AuthenticationPage = ({setSelectedComponent}) => {
+const AuthenticationPage = ({ setSelectedComponent }) => {
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isSigningUp, setIsSigningUp] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const {setCurrentUserId} = useContext(UserContext);
+    const [isLoading, setIsLoading] = useState(false);
+    const { setCurrentUserId } = useContext(UserContext);
 
     const handleSubmit = async () => {
         setErrorMessage('');
         if (email.trim() && password.trim()) {
+            setIsLoading(true); // Start loading
             try {
                 if (isSigningUp) {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await createUser(userCredential.user.uid, username);
                     setCurrentUserId(userCredential.user.uid);
                 } else {
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -33,6 +39,8 @@ const AuthenticationPage = ({setSelectedComponent}) => {
             } catch (error) {
                 console.log(error.code);
                 setErrorMessage(handleErrorMessage(error.code));
+            } finally {
+                setIsLoading(false); // Stop loading
             }
         } else {
             setErrorMessage('Please enter both email and password.');
@@ -59,12 +67,22 @@ const AuthenticationPage = ({setSelectedComponent}) => {
             <Text style={styles.title}>
                 {isSigningUp ? 'Sign Up' : 'Login'}
             </Text>
+            {isSigningUp &&
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter your username"
+                    placeholderTextColor="#aaa"
+                    value={username}
+                    onChangeText={(text) => setUsername(text.replace(/\n/g, ''))}
+                    autoCapitalize="none"
+                />
+            }
             <TextInput
                 style={styles.input}
                 placeholder="Enter your email"
                 placeholderTextColor="#aaa"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => setEmail(text.replace(/\n/g, ''))}
                 keyboardType="email-address"
                 autoCapitalize="none"
             />
@@ -73,14 +91,22 @@ const AuthenticationPage = ({setSelectedComponent}) => {
                 placeholder="Enter your password"
                 placeholderTextColor="#aaa"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => setPassword(text.replace(/\n/g, ''))}
+                autoCapitalize="none"
                 secureTextEntry
             />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>
-                    {isSigningUp ? 'Sign Up' : 'Login'}
-                </Text>
-            </TouchableOpacity>
+            {isLoading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.textColor} />
+                    <Text style={styles.loadingText}>Creating your account...</Text>
+                </View>
+            ) : (
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                    <Text style={styles.buttonText}>
+                        {isSigningUp ? 'Sign Up' : 'Login'}
+                    </Text>
+                </TouchableOpacity>
+            )}
             {errorMessage ? (
                 <Text style={styles.errorText}>{errorMessage}</Text>
             ) : null}
@@ -134,7 +160,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     errorText: {
-        color: colors.errorColor || 'red', // Define a color in your styles/colors.js or use 'red'
+        color: colors.errorColor || 'red',
         fontSize: 14,
         marginTop: 10,
     },
@@ -144,6 +170,16 @@ const styles = StyleSheet.create({
     toggleButtonText: {
         color: colors.textColor,
         fontSize: 14,
+    },
+    loadingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    loadingText: {
+        marginLeft: 10,
+        color: colors.textColor,
+        fontSize: 16,
     },
 });
 
