@@ -65,12 +65,12 @@ const AuthenticationPage = ({ setSelectedComponent }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>
-                {isSigningUp ? 'Sign Up' : 'Login'}
+                {isSigningUp ? 'Who are you?' : 'Welcome back!'}
             </Text>
             {isSigningUp &&
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter your username"
+                    placeholder="What's your username?"
                     placeholderTextColor="#aaa"
                     value={username}
                     onChangeText={(text) => setUsername(text.replace(/\n/g, ''))}
@@ -79,7 +79,7 @@ const AuthenticationPage = ({ setSelectedComponent }) => {
             }
             <TextInput
                 style={styles.input}
-                placeholder="Enter your email"
+                placeholder="What's your email?"
                 placeholderTextColor="#aaa"
                 value={email}
                 onChangeText={(text) => setEmail(text.replace(/\n/g, ''))}
@@ -88,7 +88,7 @@ const AuthenticationPage = ({ setSelectedComponent }) => {
             />
             <TextInput
                 style={styles.input}
-                placeholder="Enter your password"
+                placeholder={isSigningUp ? "What should your password be?" : "What's your password?"}
                 placeholderTextColor="#aaa"
                 value={password}
                 onChangeText={(text) => setPassword(text.replace(/\n/g, ''))}
