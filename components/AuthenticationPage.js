@@ -5,58 +5,153 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    Alert,
     ActivityIndicator,
 } from 'react-native';
 import colors from "../styles/colors";
-import {createUser, exists} from '../firebase/user';
+import {auth} from '../firebase/config';
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    fetchSignInMethodsForEmail,
+} from 'firebase/auth';
 import {UserContext} from "../context/UserContext";
+import {createUser} from "../firebase/user";
 
 const AuthenticationPage = ({setSelectedComponent}) => {
-    const [name, setName] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isNewUser, setIsNewUser] = useState(false);
     const {setCurrentUserId} = useContext(UserContext);
 
     const handleSubmit = async () => {
-        if (name.trim()) {
-            setLoading(true);
+        setErrorMessage('');
+        if (email.trim() && password.trim()) {
+            setIsLoading(true);
             try {
-                if (!await exists(name)) {
-                    await createUser(name);
+                // client-side validation for email and password
+                if (!isValidEmail(email)) {
+                    setErrorMessage('Invalid email address format.');
+                    setIsLoading(false);
+                    return;
                 }
-                setCurrentUserId(name);
-                setSelectedComponent('Home');
+                if (password.length < 6) {
+                    setErrorMessage('Password should be at least 6 characters.');
+                    setIsLoading(false);
+                    return;
+                }
+
+                // check if email is already in use
+                const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+
+                if (signInMethods.length === 0 && !isNewUser) {
+                    // no account exists with this email
+                    setIsNewUser(true);
+                } else if (isNewUser) {
+                    // create a new user
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await createUser(userCredential.user.uid, username);
+                    setCurrentUserId(userCredential.user.uid);
+                    setSelectedComponent('Home');
+                } else {
+                    // attempt to log in
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    setCurrentUserId(userCredential.user.uid);
+                    setSelectedComponent('Home');
+                }
             } catch (error) {
-                Alert.alert('Error creating user:', error.message);
+                // convert firebase error code to user-friendly error message
+                setErrorMessage(handleErrorMessage(error.code));
             } finally {
-                setLoading(false);
+                setIsLoading(false);
             }
         } else {
-            Alert.alert('Please enter your name.');
+            setErrorMessage('Please enter both email and password.');
         }
     };
 
+    const handleErrorMessage = (code) => {
+        switch (code) {
+            case 'auth/invalid-email':
+                return 'Invalid email address format.';
+            case 'auth/wrong-password':
+                return 'Incorrect password.';
+            case 'auth/weak-password':
+                return 'Password should be at least 6 characters.';
+            case 'auth/email-already-in-use':
+                return 'Email already in use.';
+            default:
+                return 'An error occurred.';
+        }
+    };
+
+    const isValidEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>What's your name?</Text>
-            <TextInput
+            <Text style={styles.title}>
+                {isNewUser ? 'Who are you?' : 'Welcome back!'}
+            </Text>
+            <Text style={styles.infoText}>
+                {isNewUser && `No account found for ${email}.\nEnter a username to sign up.`}
+            </Text>
+            {isNewUser && (
+                <TextInput
+                    style={styles.input}
+                    placeholder="What's your username?"
+                    placeholderTextColor="#aaa"
+                    value={username}
+                    onChangeText={(text) => setUsername(text.replace(/\n/g, ''))}
+                    autoCapitalize="none"
+                />
+            )}
+            {!isNewUser && <TextInput
                 style={styles.input}
-                placeholder="Enter your name"
+                placeholder="What's your email?"
                 placeholderTextColor="#aaa"
-                value={name}
-                onChangeText={setName}
-                editable={!loading}
-            />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-                {loading ? (
-                    <>
-                        <ActivityIndicator size="small" color="#fff"/>
-                        <Text style={styles.buttonText}>  Creating your account...</Text>
-                    </>
-                ) : (
-                    <Text style={styles.buttonText}>Submit</Text>
-                )}
-            </TouchableOpacity>
+                value={email}
+                onChangeText={(text) => setEmail(text.replace(/\n/g, ''))}
+                keyboardType="email-address"
+                autoCapitalize="none"
+            />}
+            {!isNewUser && <TextInput
+                style={styles.input}
+                placeholder={isNewUser ? "What should your password be?" : "What's your password?"}
+                placeholderTextColor="#aaa"
+                value={password}
+                onChangeText={(text) => setPassword(text.replace(/\n/g, ''))}
+                autoCapitalize="none"
+                secureTextEntry
+            />}
+            {isLoading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.textColor}/>
+                    <Text style={styles.loadingText}>
+                        {isNewUser ? 'Creating your account...' : 'Logging in...'}
+                    </Text>
+                </View>
+            ) : (
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity style={[styles.button, styles.marginRight]} onPress={handleSubmit}>
+                        <Text style={styles.buttonText}>
+                            {isNewUser ? 'Sign Up' : 'Login'}
+                        </Text>
+                    </TouchableOpacity>
+                    {isNewUser && (
+                        <TouchableOpacity style={styles.button} onPress={() => setIsNewUser(false)}>
+                            <Text style={styles.buttonText}>Back</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+            {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
         </View>
     );
 };
@@ -69,7 +164,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.backgroundColor,
     },
     title: {
-        fontSize: 24,
+        fontSize: 30,
         fontWeight: 'bold',
         marginBottom: 20,
         color: colors.textColor,
@@ -90,15 +185,42 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     buttonText: {
         color: colors.textColor,
         fontSize: 18,
         fontWeight: 'bold',
     },
+    errorText: {
+        color: colors.errorColor || 'red',
+        fontSize: 14,
+        marginTop: 10,
+    },
+    loadingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    loadingText: {
+        marginLeft: 10,
+        color: colors.textColor,
+        fontSize: 16,
+    },
+    infoText: {
+        color: colors.textColor,
+        fontSize: 14,
+        marginTop: 10,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        width: '80%',
+    },
+    marginRight: {
+        marginRight: 10,
+    }
 });
 
 export default AuthenticationPage;
