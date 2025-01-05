@@ -5,57 +5,94 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    Alert,
-    ActivityIndicator,
 } from 'react-native';
 import colors from "../styles/colors";
-import {createUser, exists} from '../firebase/user';
+import {auth} from '../firebase/config';
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth';
 import {UserContext} from "../context/UserContext";
 
 const AuthenticationPage = ({setSelectedComponent}) => {
-    const [name, setName] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isSigningUp, setIsSigningUp] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const {setCurrentUserId} = useContext(UserContext);
 
     const handleSubmit = async () => {
-        if (name.trim()) {
-            setLoading(true);
+        setErrorMessage('');
+        if (email.trim() && password.trim()) {
             try {
-                if (!await exists(name)) {
-                    await createUser(name);
+                if (isSigningUp) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    setCurrentUserId(userCredential.user.uid);
+                } else {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    setCurrentUserId(userCredential.user.uid);
                 }
-                setCurrentUserId(name);
                 setSelectedComponent('Home');
             } catch (error) {
-                Alert.alert('Error creating user:', error.message);
-            } finally {
-                setLoading(false);
+                console.log(error.code);
+                setErrorMessage(handleErrorMessage(error.code));
             }
         } else {
-            Alert.alert('Please enter your name.');
+            setErrorMessage('Please enter both email and password.');
+        }
+    };
+
+    const handleErrorMessage = (code) => {
+        switch (code) {
+            case 'auth/invalid-email':
+                return 'Invalid email address format.';
+            case 'auth/invalid-credential':
+                return 'Invalid credentials.';
+            case 'auth/email-already-in-use':
+                return 'Email already in use.';
+            case 'auth/weak-password':
+                return 'Password should be at least 6 characters.';
+            default:
+                return 'An error occurred.';
         }
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>What's your name?</Text>
+            <Text style={styles.title}>
+                {isSigningUp ? 'Sign Up' : 'Login'}
+            </Text>
             <TextInput
                 style={styles.input}
-                placeholder="Enter your name"
+                placeholder="Enter your email"
                 placeholderTextColor="#aaa"
-                value={name}
-                onChangeText={setName}
-                editable={!loading}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
             />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-                {loading ? (
-                    <>
-                        <ActivityIndicator size="small" color="#fff"/>
-                        <Text style={styles.buttonText}>  Creating your account...</Text>
-                    </>
-                ) : (
-                    <Text style={styles.buttonText}>Submit</Text>
-                )}
+            <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                placeholderTextColor="#aaa"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+            />
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                <Text style={styles.buttonText}>
+                    {isSigningUp ? 'Sign Up' : 'Login'}
+                </Text>
+            </TouchableOpacity>
+            {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
+            <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={() => setIsSigningUp(!isSigningUp)}
+            >
+                <Text style={styles.toggleButtonText}>
+                    {isSigningUp
+                        ? 'Already have an account? Log in'
+                        : "Don't have an account? Sign up"}
+                </Text>
             </TouchableOpacity>
         </View>
     );
@@ -90,14 +127,23 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     buttonText: {
         color: colors.textColor,
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    errorText: {
+        color: colors.errorColor || 'red', // Define a color in your styles/colors.js or use 'red'
+        fontSize: 14,
+        marginTop: 10,
+    },
+    toggleButton: {
+        marginTop: 10,
+    },
+    toggleButtonText: {
+        color: colors.textColor,
+        fontSize: 14,
     },
 });
 
