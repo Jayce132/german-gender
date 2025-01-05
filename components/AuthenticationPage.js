@@ -31,7 +31,22 @@ const AuthenticationPage = ({setSelectedComponent}) => {
         if (email.trim() && password.trim()) {
             setIsLoading(true);
             try {
+                // client-side validation for email and password
+                if (!isValidEmail(email)) {
+                    setErrorMessage('Invalid email address format.');
+                    setIsLoading(false);
+                    return;
+                }
+                if (password.length < 6) {
+                    setErrorMessage('Password should be at least 6 characters.');
+                    setIsLoading(false);
+                    return;
+                }
+
+                // check if email is already in use
+                console.log(email);
                 const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+                console.log(signInMethods);
 
                 if (signInMethods.length === 0 && !isNewUser) {
                     // no account exists with this email
@@ -49,7 +64,7 @@ const AuthenticationPage = ({setSelectedComponent}) => {
                     setSelectedComponent('Home');
                 }
             } catch (error) {
-                console.log(error.code);
+                // convert firebase error code to user-friendly error message
                 setErrorMessage(handleErrorMessage(error.code));
             } finally {
                 setIsLoading(false);
@@ -73,6 +88,11 @@ const AuthenticationPage = ({setSelectedComponent}) => {
                 return 'An error occurred.';
         }
     };
+
+    const isValidEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
 
     return (
         <View style={styles.container}>
