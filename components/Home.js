@@ -1,14 +1,45 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
 } from 'react-native';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import {UserContext} from "../context/UserContext";
+import {getUsername} from "../firebase/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
+const Home = ({setNumWordsToPractice, setSelectedComponent, setWordType}) => {
     const [selectedType, setSelectedType] = useState(null);
-    const { currentUserId } = useContext(UserContext);
+    const {currentUserId} = useContext(UserContext);
+    const [username, setUsername] = useState('');
+
+    // used async storage to store the username so that there won't be a delay in loading the username
+    useEffect(() => {
+        const fetchUsername = async () => {
+            try {
+                if (currentUserId) {
+                    // try to get the username from AsyncStorage first
+                    const storedUsername = await AsyncStorage.getItem('username');
+                    if (storedUsername) {
+                        setUsername(storedUsername);
+                    } else {
+                        // fetch from Firebase if not in AsyncStorage
+                        const fetchedUsername = await getUsername(currentUserId);
+                        setUsername(fetchedUsername);
+                        await AsyncStorage.setItem('username', fetchedUsername);
+                    }
+                } else {
+                    // set username to "Guest" if no currentUserId
+                    setUsername('Guest');
+                    await AsyncStorage.removeItem('username');
+                }
+            } catch (error) {
+                console.error('Error fetching username:', error);
+                setUsername('Guest');
+            }
+        };
+        fetchUsername();
+    }, [currentUserId]);
 
     const typeDescriptions = {
         noun: 'A noun is a person, place, thing, or idea',
@@ -21,34 +52,34 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
 
     const homeTypeExampleWords = {
         noun: [
-            { article: 'das', english: 'year', german: 'Jahr', score: "hidden", type: 'noun' },
-            { article: 'die', english: 'woman', german: 'Frau', score: "hidden", type: 'noun' },
-            { article: 'der', english: 'man', german: 'Mann', score: "hidden", type: 'noun' },
+            {article: 'das', english: 'year', german: 'Jahr', score: "hidden", type: 'noun'},
+            {article: 'die', english: 'woman', german: 'Frau', score: "hidden", type: 'noun'},
+            {article: 'der', english: 'man', german: 'Mann', score: "hidden", type: 'noun'},
         ],
         verb: [
-            { german: 'machen', english: 'to do/make', score: "hidden", type: 'verb', subtype: 'Regular' },
-            { german: 'können', english: 'can', score: "hidden", type: 'verb', subtype: 'Modal' },
-            { german: 'sein', english: 'to be', score: "hidden", type: 'verb', subtype: 'Irregular' },
+            {german: 'machen', english: 'to do/make', score: "hidden", type: 'verb', subtype: 'Regular'},
+            {german: 'können', english: 'can', score: "hidden", type: 'verb', subtype: 'Modal'},
+            {german: 'sein', english: 'to be', score: "hidden", type: 'verb', subtype: 'Irregular'},
         ],
         adjective: [
-            { german: 'ganz', english: 'whole, entire', score: "hidden", type: 'adjective' },
-            { german: 'groß', english: 'big, large', score: "hidden", type: 'adjective' },
-            { german: 'klein', english: 'small, little', score: "hidden", type: 'adjective' },
+            {german: 'ganz', english: 'whole, entire', score: "hidden", type: 'adjective'},
+            {german: 'groß', english: 'big, large', score: "hidden", type: 'adjective'},
+            {german: 'klein', english: 'small, little', score: "hidden", type: 'adjective'},
         ],
         adverb: [
-            { german: 'auch', english: 'also, too', score: "hidden", type: 'adverb' },
-            { german: 'sehr', english: 'very', score: "hidden", type: 'adverb' },
-            { german: 'immer', english: 'always', score: "hidden", type: 'adverb' },
+            {german: 'auch', english: 'also, too', score: "hidden", type: 'adverb'},
+            {german: 'sehr', english: 'very', score: "hidden", type: 'adverb'},
+            {german: 'immer', english: 'always', score: "hidden", type: 'adverb'},
         ],
         pronoun: [
-            { german: 'ich', english: 'I', score: "hidden", type: 'pronoun' },
-            { german: 'du', english: 'you', score: "hidden", type: 'pronoun' },
-            { german: 'er', english: 'he', score: "hidden", type: 'pronoun' },
+            {german: 'ich', english: 'I', score: "hidden", type: 'pronoun'},
+            {german: 'du', english: 'you', score: "hidden", type: 'pronoun'},
+            {german: 'er', english: 'he', score: "hidden", type: 'pronoun'},
         ],
         preposition: [
-            { german: 'in', english: 'in', case: ['accusative', 'dative'], score: "hidden", type: 'preposition' },
-            { german: 'für', english: 'for', case: ['accusative'], score: "hidden", type: 'preposition' },
-            { german: 'mit', english: 'with', case: ['dative'], score: "hidden", type: 'preposition' },
+            {german: 'in', english: 'in', case: ['accusative', 'dative'], score: "hidden", type: 'preposition'},
+            {german: 'für', english: 'for', case: ['accusative'], score: "hidden", type: 'preposition'},
+            {german: 'mit', english: 'with', case: ['dative'], score: "hidden", type: 'preposition'},
         ],
     };
 
@@ -115,7 +146,7 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
                 {/* Header Section */}
                 {!selectedType ?
                     <View style={styles.headerContainer}>
-                        <Text style={styles.headerTitle}>Hello {currentUserId || 'Guest'}</Text>
+                        <Text style={styles.headerTitle}>Hello {username}</Text>
                         <Text style={styles.headerSubtitle}>
                             What do you want to practice today?
                         </Text>
@@ -127,8 +158,8 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
                         <Text style={styles.typeDescription}>{typeDescriptions[selectedType]}</Text>
 
                         {selectedWord && (
-                            <View style={{ marginTop: 10 }}>
-                                <Flashcard item={selectedWord} />
+                            <View style={{marginTop: 10}}>
+                                <Flashcard item={selectedWord}/>
                                 <Text style={styles.secondaryDescription}>
                                     {getSecondaryDescription(selectedWord)}
                                 </Text>
@@ -160,7 +191,7 @@ const Home = ({ setNumWordsToPractice, setSelectedComponent, setWordType }) => {
                 <TouchableOpacity
                     style={[
                         styles.practiceButton,
-                        !selectedType && { display: 'none' }
+                        !selectedType && {display: 'none'}
                     ]}
                     onPress={handleStartPractice}
                     disabled={!selectedType}

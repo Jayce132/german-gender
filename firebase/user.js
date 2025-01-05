@@ -3,10 +3,11 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import {initializeUserUnlockedWords, initializeUserWords} from "./seeder";
 
 // this function creates a user document in the 'users' collection
-const createUser = async (userId) => {
+export const createUser = async (userId, username) => {
     try {
         // define the user data structure
         const userData = {
+            username
         };
 
         // run the user seeders
@@ -35,4 +36,12 @@ export const exists = async (userId) => {
     }
 };
 
-export { createUser };
+export const getUsername = async (userId) => {
+    try {
+        const userRef = doc(db, 'users', userId);
+        const docSnap = await getDoc(userRef);
+        return docSnap.data().username;
+    } catch (error) {
+        console.error('Error getting username:', error);
+    }
+}
