@@ -15,7 +15,7 @@ import Learn from './components/Learn';
 import { UserProvider, UserContext } from './context/UserContext';
 import { synchronizeUnlockedWordsForUser } from './firebase/getUnlockedWords';
 import colors from './styles/colors';
-import insertWordsData, {createTables, init} from "./sqlite/sqlite";
+import initDb from "./sqlite/sqlite";
 
 const MainApp = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
@@ -86,7 +86,7 @@ const MainApp = () => {
 };
 
 const App = () => {
-    insertWordsData();
+    initDb();
 
     return (
         <UserProvider>
