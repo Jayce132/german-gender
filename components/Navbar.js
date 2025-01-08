@@ -39,9 +39,9 @@ const Navbar = ({setComponent, selectedComponent, setComponentAfterStats}) => {
         setCurrentUserId(null);
     }
 
-    const isLogoutVisible = !currentUserId &&
+    const isLogoutVisible = !!currentUserId &&
         selectedComponent !== 'Practice' &&
-        selectedComponent === 'Revision' &&
+        selectedComponent !== 'Revision' &&
         selectedComponent !== 'StatsScreen';
 
 
