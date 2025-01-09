@@ -24,6 +24,7 @@ const createTables = async (db) => {
                     subtype     TEXT,
                     type        TEXT,
                     article     TEXT,
+                    unlocked    BOOLEAN,
                     FOREIGN KEY (sentence_id) REFERENCES sentences (id)
                 );
                 CREATE TABLE IF NOT EXISTS forms
@@ -35,7 +36,7 @@ const createTables = async (db) => {
                     FOREIGN KEY (word_id) REFERENCES words (id)
                 );`
         );
-        console.log('Tables created');
+        // console.log('Tables created');
     } catch (error) {
         console.error('Error creating tables:', error);
     }
@@ -47,7 +48,7 @@ const insertWords = async (db) => {
             for (const word of words) {
                 const index = words.indexOf(word);
                 const article = word.article || 'noart';
-                const wordId = type + '-' + article + '-' + word.german;
+                const wordId = type + '-' + article + '-' + word.german.toLowerCase();
 
                 const sentence = word.sentence;
                 const result = await db.runAsync(
@@ -58,9 +59,9 @@ const insertWords = async (db) => {
                 const sentenceId = result.lastInsertRowId;
 
                 await db.runAsync(
-                    `INSERT INTO words (id, completed, english, german, position, score, sentence_id, subtype, type, article)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-                    [wordId, false, word.english, word.german, index, 0, sentenceId, word.subtype, type, word.article]
+                    `INSERT INTO words (id, completed, english, german, position, score, sentence_id, subtype, type, article, unlocked)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+                    [wordId, false, word.english, word.german, index, 0, sentenceId, word.subtype, type, word.article, false]
                 );
 
                 const forms = word.forms;
@@ -86,62 +87,6 @@ const dropTables = async (db) => {
     await db.runAsync(`DROP TABLE IF EXISTS words;`);
     await db.runAsync(`DROP TABLE IF EXISTS sentences;`);
     console.log('Tables dropped');
-};
-
-export const getAllWordsForGuest = async () => {
-    try {
-        const db = await SQLite.openDatabaseAsync('wordsDatabase.sqlite');
-
-        // Fetch all words
-        const words = await db.getAllAsync(`SELECT * FROM words`);
-
-        // Prepare the result object
-        const wordsByType = {};
-
-        // Process each word
-        for (const word of words) {
-            // Fetch all forms for the word
-            const forms = await db.getAllAsync(
-                `SELECT * FROM forms WHERE word_id = ?`,
-                [word.id]
-            );
-
-            // Remove unnecessary fields from forms
-            if (forms) {
-                for (const form of forms) {
-                    delete form.word_id;
-                    delete form.id;
-                }
-            }
-            word.forms = forms;
-
-            // Fetch the sentence for the word
-            const sentence = await db.getFirstAsync(
-                `SELECT * FROM sentences WHERE id = ?`,
-                [word.sentence_id]
-            );
-
-            // Remove unnecessary fields and add sentence to the word
-            if (sentence) {
-                delete sentence.id;
-                word.sentence = sentence;
-            }
-            delete word.sentence_id;
-
-            // Group words by type
-            if (!wordsByType[word.type]) {
-                wordsByType[word.type] = [];
-            }
-            wordsByType[word.type].push(word);
-        }
-
-        await db.closeAsync();
-        console.log('Words fetched for guest successfully');
-        return wordsByType;
-    } catch (error) {
-        console.error('Error getting words for guest:', error);
-        return null;
-    }
 };
 
 const initDb = async () => {
