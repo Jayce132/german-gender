@@ -3,43 +3,37 @@ import wordsData from "../data/wordsData";
 
 const createTables = async (db) => {
     await db.runAsync('PRAGMA foreign_keys = ON;');
-
-    await db.runAsync(
-        `CREATE TABLE IF NOT EXISTS words
-         (
-             id          TEXT PRIMARY KEY,
-             completed   BOOLEAN,
-             english     TEXT,
-             german      TEXT,
-             position    INTEGER,
-             score       INTEGER,
-             sentence_id INTEGER,
-             subtype     TEXT,
-             type        TEXT,
-             FOREIGN KEY (sentence_id) REFERENCES sentences (id)
-         );`
+    await db.execAsync(
+        `
+            CREATE TABLE IF NOT EXISTS sentences
+            (
+                id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                german_sentence  TEXT,
+                english_sentence TEXT
+            );
+            CREATE TABLE IF NOT EXISTS words
+            (
+                id          TEXT PRIMARY KEY,
+                completed   BOOLEAN,
+                english     TEXT,
+                german      TEXT,
+                position    INTEGER,
+                score       INTEGER,
+                sentence_id INTEGER,
+                subtype     TEXT,
+                type        TEXT,
+                FOREIGN KEY (sentence_id) REFERENCES sentences (id)
+            );
+            CREATE TABLE IF NOT EXISTS forms
+            (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                word_id     TEXT, -- the word this form belongs to
+                form        TEXT,
+                explanation TEXT,
+                FOREIGN KEY (word_id) REFERENCES words (id)
+            );`
     );
-
-    await db.runAsync(
-        `CREATE TABLE IF NOT EXISTS forms
-         (
-             id          INTEGER PRIMARY KEY AUTOINCREMENT,
-             word_id     TEXT, -- the word this form belongs to
-             form        TEXT,
-             explanation TEXT,
-             FOREIGN KEY (word_id) REFERENCES words (id)
-         );`
-    );
-
-    await db.runAsync(
-        `CREATE TABLE IF NOT EXISTS sentences
-         (
-             id               INTEGER PRIMARY KEY AUTOINCREMENT,
-             german_sentence  TEXT,
-             english_sentence TEXT
-         );`
-    );
-    console.log('createTables done');
+    console.log('Tables created');
 };
 
 const insertWords = async (db) => {
@@ -52,26 +46,10 @@ const insertWords = async (db) => {
             const article = word.article || 'noart';
             const wordId = type + '-' + article + '-' + word.german;
 
-            // create the form entries for the current word
-            const forms = word.forms;
-            for (const formObj of forms) {
-                const {form, explanation} = formObj;
-                console.log('form:', form, 'explanation:', explanation);
-                console.log('wordId:', wordId);
-                const result = await db.runAsync(
-                    `INSERT INTO forms (word_id, form, explanation)
-                     VALUES (?, ?, ?);`,
-                    wordId, form, explanation
-                );
-                console.log(result.lastInsertRowId, result.changes);
-                console.log('inserted form');
-            }
-
             // create the sentence entry for the current word
             const sentence = word.sentence;
             const result = await db.runAsync(
-                `INSERT INTO sentences (german_sentence, english_sentence)
-                 VALUES (?, ?);`,
+                `INSERT INTO sentences (german_sentence, english_sentence) VALUES (?, ?);`,
                 [sentence.german, sentence.english]
             );
             const sentenceId = result.insertId;
@@ -82,33 +60,39 @@ const insertWords = async (db) => {
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
                 [wordId, false, word.english, word.german, index, 0, sentenceId, word.subtype, type]
             );
+
+            // create the form entries for the current word
+            const forms = word.forms;
+            if (forms) {
+                for (const formObj of forms) {
+                    const {form, explanation} = formObj;
+                    await db.runAsync(
+                        `INSERT INTO forms (word_id, form, explanation) VALUES (?, ?, ?);`, wordId, form, explanation
+                    );
+                }
+            }
         }
     }
-    console.log('insertWords done');
-}
-
-const getFirstWord = async (db) => {
-    const result = await db.getAllAsync(
-        `SELECT COUNT(*) FROM sentences;`
-    );
-    console.log(result);
-    console.log('getFirstWord done');
+    console.log('Words inserted');
 }
 
 const dropTables = async (db) => {
-    await db.runAsync(`DROP TABLE IF EXISTS words;`);
     await db.runAsync(`DROP TABLE IF EXISTS forms;`);
+    await db.runAsync(`DROP TABLE IF EXISTS words;`);
     await db.runAsync(`DROP TABLE IF EXISTS sentences;`);
-    console.log('dropTables done');
+    console.log('Tables dropped');
 };
 
 const initDb = async () => {
     const db = await SQLite.openDatabaseAsync('wordsDatabase.sqlite');
 
-    // await dropTables(db);
-    // await createTables(db);
-    await insertWords(db);
-    // await getFirstWord(db);
+    try {
+        // await dropTables(db);
+        // await createTables(db);
+        // await insertWords(db);
+    } catch (error) {
+        console.error('Error initializing database:', error);
+    }
 };
 
 export default initDb;
