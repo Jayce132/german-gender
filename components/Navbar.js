@@ -17,7 +17,7 @@ const Navbar = ({setComponent, selectedComponent, setComponentAfterStats}) => {
 
     const navItems = [
         {label: 'Home', component: 'Home'},
-        {label: 'Learn', component: 'Learn'},
+        {label: 'Word List', component: 'WordList'},
         {label: 'Sentence Builder', component: 'SentenceBuilder'},
     ];
 
