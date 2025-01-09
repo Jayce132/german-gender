@@ -15,6 +15,8 @@ import {updateWordScoreForUser} from "../firebase/updateWordScore";
 import {getUnlockedWordsForUser} from "../firebase/getUnlockedWords";
 import {unlockNextWordForUser} from "../firebase/unlockNextWord";
 import {UserContext} from "../context/UserContext";
+import updateWordScoreForGuest from "../sqlite/updateWordScoreForGuest";
+import unlockNextWordForGuest from "../sqlite/unlockNextWordForGuest";
 
 const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}) => {
     const [words, setWords] = useState([]);
@@ -197,9 +199,16 @@ const Practice = ({numWordsToPractice, wordType, setSelectedComponent, setStats}
         // Update the score in Firestore using the custom ID only in the first round
         if (practiceRound === 1) {
             try {
-                await updateWordScoreForUser(currentUserId, currentWord.id, newScore); // Use the custom ID
+                if (currentUserId) {
+                    await updateWordScoreForUser(currentUserId, currentWord.id, newScore); // Use the custom ID
+                } else {
+                    await updateWordScoreForGuest(currentWord.id, newScore);
+                }
+
                 if (newScore === 4) {
-                    const unlockedWord = await unlockNextWordForUser(currentWord.id, currentWord.type, currentUserId);
+                    const unlockedWord = currentUserId
+                        ? await unlockNextWordForUser(currentWord.id, currentWord.type, currentUserId)
+                        : await unlockNextWordForGuest(currentWord.id);
                     if (practiceRound === 1 && unlockedWord) {
                         setStats((prevStats) => ({
                             ...prevStats,

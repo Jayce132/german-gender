@@ -5,7 +5,7 @@ import colors from '../styles/colors';
 import Flashcard from './Flashcard';
 import WordListHeader from './WordListHeader';
 import {UserContext} from "../context/UserContext";
-import {getAllWordsForGuest} from "../sqlite/sqlite";
+import {getAllWordsForGuest} from "../sqlite/getWordsForGuest";
 
 // Define the predefined order
 const predefinedOrder = ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition'];
@@ -27,8 +27,6 @@ const WordList = ({ setComponent }) => {
                 const wordsByType = currentUserId
                     ? await getAllWordsForUser(currentUserId)
                     : await getAllWordsForGuest();
-
-                console.log(JSON.stringify(wordsByType, null, 2));
 
                 // Flatten the wordsByType object into a single array
                 const flatWords = Object.entries(wordsByType).flatMap(([type, words]) =>
