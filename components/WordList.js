@@ -3,13 +3,13 @@ import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-nativ
 import {getAllWordsForUser} from '../firebase/getAllWords';
 import colors from '../styles/colors';
 import Flashcard from './Flashcard';
-import LearnHeader from './LearnHeader';
+import WordListHeader from './WordListHeader';
 import {UserContext} from "../context/UserContext";
 
 // Define the predefined order
 const predefinedOrder = ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition'];
 
-const Learn = ({ setComponent }) => {
+const WordList = ({ setComponent }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [allWords, setAllWords] = useState([]);
     const [selectedType, setSelectedType] = useState('noun');
@@ -65,7 +65,7 @@ const Learn = ({ setComponent }) => {
     if (error) {
         return (
             <View style={styles.container}>
-                <LearnHeader
+                <WordListHeader
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     selectedType={selectedType}
@@ -80,7 +80,7 @@ const Learn = ({ setComponent }) => {
 
     return (
         <View style={styles.container}>
-            <LearnHeader
+            <WordListHeader
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 selectedType={selectedType}
@@ -120,4 +120,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Learn;
+export default WordList;

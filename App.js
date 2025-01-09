@@ -11,7 +11,7 @@ import Practice from './components/Practice';
 import SentenceBuilder from './components/SentenceBuilder';
 import StatsScreen from './components/StatsScreen';
 import AuthenticationPage from './components/AuthenticationPage';
-import Learn from './components/Learn';
+import WordList from './components/WordList';
 import { UserProvider, UserContext } from './context/UserContext';
 import { synchronizeUnlockedWordsForUser } from './firebase/getUnlockedWords';
 import colors from './styles/colors';
@@ -41,7 +41,7 @@ const MainApp = () => {
                 barStyle="light-content"
                 backgroundColor={colors.backgroundColor}
             />
-            {selectedComponent !== 'Learn' && (
+            {selectedComponent !== 'WordList' && (
                 <Navbar
                     setComponent={setSelectedComponent}
                     selectedComponent={selectedComponent}
@@ -56,7 +56,7 @@ const MainApp = () => {
                         setWordType={setWordType}
                     />
                 )}
-                {selectedComponent === 'Learn' && <Learn setComponent={setSelectedComponent} />}
+                {selectedComponent === 'WordList' && <WordList setComponent={setSelectedComponent} />}
                 {selectedComponent === 'Practice' && (
                     <Practice
                         numWordsToPractice={numWordsToPractice}
