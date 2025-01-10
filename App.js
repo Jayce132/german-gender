@@ -15,8 +15,6 @@ import WordList from './components/WordList';
 import { UserProvider, UserContext } from './context/UserContext';
 import { synchronizeUnlockedWordsForUser } from './firebase/getUnlockedWords';
 import colors from './styles/colors';
-import initDb from "./sqlite/init-sqlite";
-import unlockNextWordForGuest from "./sqlite/unlockNextWordForGuest";
 
 const MainApp = () => {
     const [selectedComponent, setSelectedComponent] = useState('Home');
@@ -87,7 +85,8 @@ const MainApp = () => {
 };
 
 const App = () => {
-    initDb();
+    // initDb();
+
     return (
         <UserProvider>
             <MainApp />

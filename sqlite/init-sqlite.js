@@ -8,9 +8,9 @@ const createTables = async (db) => {
             `
                 CREATE TABLE IF NOT EXISTS sentences
                 (
-                    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-                    german_sentence  TEXT,
-                    english_sentence TEXT
+                    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                    german  TEXT,
+                    english TEXT
                 );
                 CREATE TABLE IF NOT EXISTS words
                 (
@@ -52,7 +52,7 @@ const insertWords = async (db) => {
 
                 const sentence = word.sentence;
                 const result = await db.runAsync(
-                    `INSERT INTO sentences (german_sentence, english_sentence) VALUES (?, ?);`,
+                    `INSERT INTO sentences (german, english) VALUES (?, ?);`,
                     [sentence.german, sentence.english]
                 );
 
@@ -92,6 +92,9 @@ const dropTables = async (db) => {
 const initDb = async () => {
     try {
         const db = await SQLite.openDatabaseAsync('wordsDatabase.sqlite');
+        if (!db) {
+            throw new Error('Failed to open database');
+        }
         // await dropTables(db);
         await createTables(db);
 
@@ -99,6 +102,7 @@ const initDb = async () => {
         if (wordsCount.count === 0) {
             await insertWords(db);
         }
+        await db.closeAsync();
     } catch (error) {
         console.error('Error initializing database:', error);
     }
