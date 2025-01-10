@@ -88,8 +88,6 @@ const MainApp = () => {
 
 const App = () => {
     initDb();
-    unlockNextWordForGuest('noun-das-mal');
-
     return (
         <UserProvider>
             <MainApp />

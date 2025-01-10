@@ -61,7 +61,7 @@ const insertWords = async (db) => {
                 await db.runAsync(
                     `INSERT INTO words (id, completed, english, german, position, score, sentence_id, subtype, type, article, unlocked)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-                    [wordId, false, word.english, word.german, index, 0, sentenceId, word.subtype, type, word.article, false]
+                    [wordId, false, word.english, word.german, index, 0, sentenceId, word.subtype, type, word.article, index < 4]
                 );
 
                 const forms = word.forms;
