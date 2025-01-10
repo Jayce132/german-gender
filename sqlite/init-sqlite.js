@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import wordsData from "../data/wordsData";
 
-const createTables = async (db) => {
+const createTablesIfNotExisting = async (db) => {
     try {
         await db.execAsync('PRAGMA foreign_keys = ON;');
         await db.execAsync(
@@ -89,14 +89,13 @@ const dropTables = async (db) => {
     console.log('Tables dropped');
 };
 
-const initDb = async () => {
+const initLocalDb = async () => {
     try {
         const db = await SQLite.openDatabaseAsync('wordsDatabase.sqlite');
         if (!db) {
             throw new Error('Failed to open database');
         }
-        // await dropTables(db);
-        await createTables(db);
+        await createTablesIfNotExisting(db);
 
         const wordsCount = await db.getFirstAsync(`SELECT COUNT(*) as count FROM words`);
         if (wordsCount.count === 0) {
@@ -108,4 +107,4 @@ const initDb = async () => {
     }
 };
 
-export default initDb;
+export default initLocalDb;
