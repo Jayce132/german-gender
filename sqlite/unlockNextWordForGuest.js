@@ -12,7 +12,7 @@ const unlockNextWordForGuest = async (currentWordId) => {
         );
 
         // if the word is already complete, return
-        if (currentWord.complete === 1) {
+        if (currentWord.completed === 1) {
             return;
         }
 
@@ -27,7 +27,7 @@ const unlockNextWordForGuest = async (currentWordId) => {
         const nextWord = await db.getFirstAsync(
             `SELECT *
              FROM words
-             WHERE id > ?
+             WHERE position > ?
              AND unlocked = 0`, currentWordId
         );
 
