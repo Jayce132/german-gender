@@ -12,7 +12,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.easeaseas.german.gender"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,6 +24,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2841b533-1c9d-4b5f-a980-cf9bbcdc4b4c"
+      }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }
